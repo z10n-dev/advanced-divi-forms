@@ -49,15 +49,34 @@ jobs:
         run: |
           git fetch origin main
           git merge-base --is-ancestor HEAD origin/main
-      - name: Build ZIP with stable plugin directory
+      
+      - name: Build plugin ZIP
+        shell: bash
         run: |
           set -euo pipefail
-          mkdir -p dist/staging/advanced-divi-forms
-          cp advanced-divi-forms.php dist/staging/advanced-divi-forms/
-          cp -r includes dist/staging/advanced-divi-forms/
-          cp -r templates dist/staging/advanced-divi-forms/
-          (cd dist/staging && zip -qr ../advanced-divi-forms.zip advanced-divi-forms)
+
+          PLUGIN_DIR="dist/staging/advanced-divi-forms"
+
+          mkdir -p "$PLUGIN_DIR"
+
+          cp advanced-divi-forms.php "$PLUGIN_DIR/"
+
+          # Copy optional directories if present.
+          for dir in includes templates assets; do
+            if [ -d "$dir" ]; then
+              cp -r "$dir" "$PLUGIN_DIR/"
+            fi
+          done
+
+          # Create release ZIP.
+          (
+            cd dist/staging
+            zip -qr ../advanced-divi-forms.zip advanced-divi-forms
+          )
+
+          # Verify ZIP integrity.
           unzip -t dist/advanced-divi-forms.zip
+
       - name: Publish GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
