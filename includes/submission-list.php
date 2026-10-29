@@ -109,7 +109,7 @@ function adf_render_submission_list( $form ) {
 				<?php submit_button( __( 'Apply', 'advanced-divi-forms' ), 'secondary', 'apply', false ); ?>
 				<span data-adf-selection-count data-template="<?php echo esc_attr__( '%d selected', 'advanced-divi-forms' ); // phpcs:ignore WordPress.WP.I18n.MissingTranslatorsComment -- Number of selected submissions. ?>" aria-live="polite"></span>
 			</div>
-			<p class="adf-delete-confirm"><label><input type="checkbox" name="confirm_delete" value="1"> <?php esc_html_e( 'I confirm permanent deletion of the selected submissions. This cannot be undone.', 'advanced-divi-forms' ); ?></label></p>
+			<p class="adf-delete-confirm"><label><input type="checkbox" name="confirm_delete" value="1"><span><?php esc_html_e( 'I confirm permanent deletion of the selected submissions. This cannot be undone.', 'advanced-divi-forms' ); ?></span></label></p>
 		</form>
 		<div class="adf-table-scroll">
 		<table class="widefat striped">

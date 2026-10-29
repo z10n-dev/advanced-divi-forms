@@ -314,7 +314,7 @@ function adf_render_submission( $form, $submission ) {
 			<?php if ( ! get_post_meta( $submission->ID, '_adf_read', true ) ) : ?>
 				<div class="adf-single-status-action"><?php submit_button( __( 'Mark as read', 'advanced-divi-forms' ), 'secondary', 'adf_mark_read', false ); ?></div>
 			<?php endif; ?>
-			<p class="adf-delete-confirm"><label><input type="checkbox" name="adf_confirm_delete" value="1"> <?php esc_html_e( 'I confirm that this submission should be permanently deleted.', 'advanced-divi-forms' ); ?></label></p>
+			<p class="adf-delete-confirm"><label><input type="checkbox" name="adf_confirm_delete" value="1"><span><?php esc_html_e( 'I confirm that this submission should be permanently deleted.', 'advanced-divi-forms' ); ?></span></label></p>
 			<?php submit_button( __( 'Delete permanently', 'advanced-divi-forms' ), 'delete adf-button-danger', 'adf_delete', false ); ?>
 		</form>
 	</div>
