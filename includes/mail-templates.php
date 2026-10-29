@@ -135,7 +135,7 @@ function adf_render_template_fields( $post ) {
 	<p><label for="adf-template-html"><strong><?php esc_html_e( 'HTML Content', 'advanced-divi-forms' ); ?></strong></label></p>
 	<textarea class="widefat code" id="adf-template-html" name="adf_html" rows="20" aria-describedby="adf-template-help"><?php echo esc_textarea( $html ); ?></textarea>
 	<p id="adf-template-help">
-		<?php esc_html_e( 'Use inline CSS. Scripts, style blocks and unsafe HTML are removed when saving. Placeholders such as {{fields.name}} use stable field IDs and belong in text content, not HTML attributes. Missing fields become empty text.', 'advanced-divi-forms' ); ?>
+		<?php esc_html_e( 'Use inline CSS. Scripts, style blocks and unsafe HTML are removed when saving. Placeholders such as {{fields.name}} use stable field IDs and belong in text content, not HTML attributes. Missing fields become empty text. Insert {{form.summary}} on its own line in the HTML body for a table of all submitted fields.', 'advanced-divi-forms' ); ?>
 	</p>
 	<p><?php esc_html_e( 'Publish this template, then select it in the Divi 5 Contact Form Email settings. Saving a template does not send email. Reload the Visual Builder after adding or publishing templates.', 'advanced-divi-forms' ); ?></p>
 	<h2><?php esc_html_e( 'Saved Preview', 'advanced-divi-forms' ); ?></h2>
@@ -186,24 +186,44 @@ function adf_enqueue_template_editor() {
 }
 
 /**
- * Render an active template for a future trusted delivery integration.
+ * Render submitted fields as an email-safe table, in submission order.
  *
- * This never sends mail or changes Divi's default delivery behavior.
+ * @param array $fields Submitted values keyed by stable field IDs.
+ * @param array $labels Optional labels keyed by stable field IDs.
+ * @return string
+ */
+function adf_render_form_summary( array $fields, array $labels = array() ) {
+	if ( ! $fields ) {
+		return '';
+	}
+	$html = '<table style="width:100%;border-collapse:collapse;" cellpadding="8" cellspacing="0" border="1"><thead><tr><th align="left">' . esc_html__( 'Field', 'advanced-divi-forms' ) . '</th><th align="left">' . esc_html__( 'Value', 'advanced-divi-forms' ) . '</th></tr></thead><tbody>';
+	foreach ( $fields as $key => $value ) {
+		$label = adf_field_text( $labels[ $key ] ?? '' );
+		$label = '' !== trim( $label ) ? $label : (string) $key;
+		$html .= '<tr><th align="left" valign="top">' . esc_html( $label ) . '</th><td valign="top">' . nl2br( esc_html( adf_field_text( $value ) ) ) . '</td></tr>';
+	}
+	return $html . '</tbody></table>';
+}
+
+/**
+ * Render an active template without sending mail.
  *
  * @param int   $template_id Published template ID.
  * @param array $fields      Submitted values keyed by stable field IDs.
+ * @param array $labels      Optional display labels keyed by stable field IDs.
  * @return array|WP_Error Subject and HTML, or an invalid-template error.
  */
-function adf_render_mail_template( $template_id, array $fields ) {
+function adf_render_mail_template( $template_id, array $fields, array $labels = array() ) {
 	$template = $template_id ? get_post( absint( $template_id ) ) : null;
 	if ( ! $template || 'adf_mail_template' !== $template->post_type || 'publish' !== $template->post_status ) {
 		return new WP_Error( 'adf_invalid_template', __( 'The mail template is not available.', 'advanced-divi-forms' ) );
 	}
+	$labels  = array_change_key_case( $labels, CASE_LOWER );
 	$fields  = array_change_key_case( $fields, CASE_LOWER );
 	$replace = static function ( $matches ) use ( $fields ) {
-		return adf_field_text( $fields[ strtolower( $matches[1] ) ] ?? '' );
+		return adf_field_text( $fields[ strtolower( $matches[1] ?? '' ) ] ?? '' );
 	};
-	$pattern = '/\{\{fields\.([a-zA-Z0-9_-]+)\}\}/';
+	$pattern = '/\{\{(?:fields\.([a-zA-Z0-9_-]+)|(form\.summary))\}\}/';
 	$subject = preg_replace_callback( $pattern, $replace, get_post_meta( $template_id, '_adf_subject', true ) );
 	$html    = get_post_meta( $template_id, '_adf_html', true );
 	// Never substitute values into tag names or attribute contexts.
@@ -216,8 +236,8 @@ function adf_render_mail_template( $template_id, array $fields ) {
 	);
 	$html = preg_replace_callback(
 		$pattern,
-		static function ( $matches ) use ( $replace ) {
-			return esc_html( $replace( $matches ) );
+		static function ( $matches ) use ( $replace, $fields, $labels ) {
+			return ! empty( $matches[2] ) ? adf_render_form_summary( $fields, $labels ) : esc_html( $replace( $matches ) );
 		},
 		$html
 	);

@@ -29,6 +29,26 @@ Missing fields become empty strings; supplied values are treated as plain text
 and escaped for HTML. PHP, shortcodes and arbitrary template expressions are not
 executed. Template changes apply when the same ID is rendered again.
 
+Use **`{{form.summary}}`** on its own line in the HTML body to insert a two-column
+**Field / Value** table containing every validated submitted field, in submission
+order. When Divi supplies a field label, it is used; otherwise the stable field ID
+is shown. Empty submitted values remain visible, multiline values retain line
+breaks, and multiselects are comma-separated. Fields excluded by conditional logic
+and internal POST parameters (such as captcha/nonces) are not included.
+
+```html
+<h2>New enquiry from {{fields.name}}</h2>
+{{form.summary}}
+<p>End of enquiry.</p>
+```
+
+This works for both notification and sender confirmation templates, independently
+of submission storage. Only place the summary where a table is valid HTML, not
+inside a paragraph, heading or attribute. It is body-only: in the subject it becomes
+empty text. Labels and values are escaped, and placeholders inside submitted data
+are never evaluated. `{{fields.all}}` still refers to an ordinary field with ID
+`all`; it is not an alias for the summary.
+
 ### Configure a Divi 5 contact form
 
 1. Create and publish templates under **Forms → Mail Templates**.
@@ -98,8 +118,9 @@ Trusted server-side integrations can also use:
   stable source key (for example a page ID plus persistent module ID).
 - `adf_store_submission( $form_id, $fields )`: store a map of stable field IDs to
   plain-text values. Multiselect values are joined with commas.
-- `adf_render_mail_template( $template_id, $fields )`: return `subject` and `html`,
-  or `WP_Error`. This function itself does not send email.
+- `adf_render_mail_template( $template_id, $fields, $labels = array() )`: return
+  `subject` and `html`, or `WP_Error`. Optional labels map field IDs to display names
+  for `{{form.summary}}`. This function itself does not send email.
 
 Forms, answers and templates use private custom post types with administrator-only
 capabilities, no public queries and no REST exposure. No visitor IP/user-agent is
@@ -145,6 +166,8 @@ WordPress, using PHP 8.2 and a disposable MySQL 8 database. It checks activation
 a subsequent WordPress bootstrap, and the debug log for fatal PHP errors.
 It also runs `tests/admin-integration.php` against the installed ZIP to check
 storage, pagination, template sanitization/rendering, permissions and answer actions.
+`tests/mail-summary.php` covers summary tables, labels, escaping, line breaks,
+multiselects, body-only placement and non-recursive substitution.
 Vendor-free Divi contract tests also exercise discovery, anonymous opt-in capture,
 mail isolation, native/short-circuited success and failure, and confirmation rules.
 `node tests/divi-settings.js` checks the Visual Builder hook registration.
