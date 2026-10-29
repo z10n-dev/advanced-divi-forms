@@ -56,9 +56,7 @@ function adf_check_github_update( $update, $plugin_data, $plugin_file ) {
 	}
 
 	$version = $matches[1];
-	if ( ! version_compare( $version, $plugin_data['Version'] ?? '0.0.0', '>' ) ) {
-		return $update;
-	}
+	// WordPress compares versions and needs metadata even when no update is available.
 
 	$package_url = '';
 	foreach ( $release['assets'] ?? array() as $asset ) {
