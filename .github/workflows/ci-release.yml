@@ -69,6 +69,9 @@ jobs:
             -not -path './dist/*' \
             -print0 | xargs -0 -r -n1 php -l
 
+      - name: Test GitHub updater
+        run: php tests/github-updater.php
+
       - name: Validate plugin versions
         shell: bash
         run: |
