@@ -28,3 +28,38 @@ Repository (create this first): https://github.com/z10n-dev/advanced-divi-forms
 - Do not include Composer dev-only vendor packages in the production ZIP. If you add runtime packages later, the release packaging must include them.
 - This starter makes no claims to verify Divi 5 integration behavior: add form handling after testing with your exact Divi 5 version.
 - Before enabling unattended updates on a live site, test an update on a nonproduction WordPress installation and keep backups.
+
+## CI and release smoke test
+
+Every pull request, release tag, and manual workflow run checks PHP syntax,
+WordPress Coding Standards, and plugin versions. CI then builds the release ZIP
+and installs it with WP-CLI in a temporary installation of the latest stable
+WordPress, using PHP 8.2 and a disposable MySQL 8 database. It checks activation,
+a subsequent WordPress bootstrap, and the debug log for fatal PHP errors.
+The release job publishes that exact tested ZIP only after all checks pass.
+
+Coding standards are development-only dependencies, locked in `.ci/composer.lock`:
+
+```sh
+composer --working-dir=.ci install
+.ci/vendor/bin/phpcs --standard=phpcs.xml.dist
+```
+
+To run the activation test locally, install PHP with `mysqli`, WP-CLI, the MySQL
+client, `zip`, and `unzip`. Provide a **disposable, empty database**, never a live
+WordPress database:
+
+```sh
+bash scripts/build-plugin.sh
+WP_DB_HOST=127.0.0.1:3306 \
+WP_DB_NAME=wordpress_test \
+WP_DB_USER=wordpress \
+WP_DB_PASSWORD=wordpress \
+bash scripts/test-wordpress-activation.sh dist/advanced-divi-forms.zip
+```
+
+The build requires a clean `dist` output directory. The test removes its temporary
+WordPress files but leaves database cleanup to the caller (GitHub Actions removes
+the database container automatically). Set `WP_VERSION` to test a specific
+WordPress release instead of `latest`. This is a basic activation test without
+Divi; it does not verify Divi form handling or the full supported version range.
