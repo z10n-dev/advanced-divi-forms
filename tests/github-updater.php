@@ -6,13 +6,37 @@
  */
 
 define( 'ABSPATH', __DIR__ . '/' );
+define( 'HOUR_IN_SECONDS', 3600 );
+define( 'MINUTE_IN_SECONDS', 60 );
+class WP_Error {
+	public function __construct( public $code, public $message, public $data = null ) {}
+	public function get_error_code() { return $this->code; }
+	public function get_error_message() { return $this->message; }
+	public function get_error_data() { return $this->data; }
+}
+function is_wp_error( $value ) { return $value instanceof WP_Error; }
+function __( $message, $domain = '' ) { return $message; }
+function get_option( $key, $default = false ) { return $default; }
+function update_option( ...$args ) { return true; }
+function delete_transient( $key ) {
+	if ( 'adf_github_latest_release' === $key ) { $GLOBALS['adf_test_release'] = false; }
+	return true;
+}
+function set_transient( $key, $value, $ttl ) {
+	if ( 'adf_github_latest_release' === $key ) { $GLOBALS['adf_test_release'] = $value; }
+	return true;
+}
+function wp_remote_get( ...$args ) { return array( 'response' => array( 'code' => 200 ), 'body' => json_encode( $GLOBALS['adf_test_release'] ) ); }
+function wp_remote_retrieve_response_code( $response ) { return $response['response']['code']; }
+function wp_remote_retrieve_body( $response ) { return $response['body']; }
+function wp_remote_retrieve_header( $response, $name ) { return ''; }
 
 function add_filter( ...$args ) {
 	return true;
 }
 
 function get_transient( $key ) {
-	return $GLOBALS['adf_test_release'];
+	return 'adf_github_latest_release' === $key ? $GLOBALS['adf_test_release'] : false;
 }
 
 require_once __DIR__ . '/../includes/github-updater.php';
@@ -62,4 +86,14 @@ $GLOBALS['adf_test_release'] = $release;
 $GLOBALS['adf_test_release']['assets'][0]['browser_download_url'] = 'https://example.org/plugin.zip';
 adf_test_expect( false === adf_check_github_update( false, array(), $plugin_file ), 'Untrusted package URLs must be rejected.' );
 
+foreach ( array(
+	array_merge( $release, array( 'draft' => true ) ),
+	array_merge( $release, array( 'prerelease' => true ) ),
+	array_merge( $release, array( 'assets' => 'not-an-array' ) ),
+	array_merge( $release, array( 'assets' => array( 'not-an-asset' ) ) ),
+	array_merge( $release, array( 'tag_name' => "v0.1.2\n" ) ),
+	null,
+) as $invalid_release ) {
+	adf_test_expect( is_wp_error( adf_parse_github_release( $invalid_release ) ), 'Malformed, draft and prerelease responses must not become update packages.' );
+}
 echo "GitHub updater regression tests passed.\n";
