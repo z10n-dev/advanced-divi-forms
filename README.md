@@ -131,6 +131,43 @@ individually in Forms. Network/multisite-wide form management is not provided.
 
 Repository (create this first): https://github.com/z10n-dev/advanced-divi-forms
 
+## Submission management
+
+Open **Forms → All Forms → a form** to manage its stored answers:
+
+- **Quick Edit** expands directly in the answer row and lets administrators change
+  the read/unread status and an internal, plain-text note (up to 5,000 characters).
+  Original submitted field values are never edited. Cancel discards unsaved edits.
+  The note is private to administrators, but **is included in Excel downloads**.
+- Check individual rows or **Select all submissions on this page**, then choose
+  **Mark as read**, **Mark as unread**, **Export selected to Excel**, or
+  **Delete permanently**. Selection applies to the current page, not hidden pages.
+  Permanent deletion additionally requires the explicit confirmation checkbox.
+- **Export all to Excel** exports every page of the current form, not just the
+  visible answers. The download is a real `.xlsx` workbook with a frozen header
+  and auto-filter: submission ID, received date/time (site timezone), status,
+  internal note, then one column per field ID. Field columns are the union across
+  the exported answers; missing values are blank. Values including leading zeros,
+  multiline text and strings starting with `=` remain literal text, never formulas.
+
+Export access is administrator-only and nonce-protected. Files are created with
+private permissions in a system temporary directory outside the site's public
+folders and deleted after download (also at request shutdown). No export is saved
+in public uploads. A private writable temporary directory is required. ZipArchive
+is used when available, otherwise WordPress's bundled PclZip is used; no runtime
+Composer packages are required.
+
+Safety limits are **10,000 answers**, **250,000 cells**, **8 MiB of worksheet XML**,
+and Excel's column/cell-length limits. Exceeding a limit returns an error instead
+of a partially truncated workbook. Export a smaller selection in that case.
+Bulk status/deletion actions accept at most 200 selected IDs. All IDs are checked
+against the current form before any change. Every write requires POST, an
+administrator capability and a valid form-scoped nonce.
+
+Inline editing and individual row selection work without JavaScript. JavaScript
+adds select-all, selection counts, Cancel/reset and conditional delete-confirmation
+controls. The wide table scrolls within the page on narrow screens.
+
 ## Setup
 
 1. Push this repository to GitHub. Make it **public**: public GitHub release downloads require no credentials.
@@ -168,6 +205,15 @@ It also runs `tests/admin-integration.php` against the installed ZIP to check
 storage, pagination, template sanitization/rendering, permissions and answer actions.
 `tests/mail-summary.php` covers summary tables, labels, escaping, line breaks,
 multiselects, body-only placement and non-recursive substitution.
+The submission action/controller/page/export suites check Quick Edit, bulk status
+and deletion, immutable original fields, nonce/capability enforcement, pagination,
+real XLSX packaging and the PclZip fallback. Tests use the PHP `zip` extension to
+independently inspect both packaging paths. The optional
+`tests/submissions-browser.py` accepts a fresh disposable fixture JSON (`form`,
+`ids`, ephemeral admin `cookies`) and uses Playwright/openpyxl to exercise actual
+inline saves, selections, pagination, mobile layout, XLSX downloads and confirmed
+deletion. Run it only against a disposable local WordPress site; it deletes two
+selected fixture answers. Never put real login cookies in version control.
 Vendor-free Divi contract tests also exercise discovery, anonymous opt-in capture,
 mail isolation, native/short-circuited success and failure, and confirmation rules.
 `node tests/divi-settings.js` checks the Visual Builder hook registration.

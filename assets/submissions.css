@@ -1,0 +1,18 @@
+.adf-submissions .adf-export-all { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin: 16px 0; }
+.adf-submissions .tablenav { display: flex; gap: 8px; align-items: center; height: auto; flex-wrap: wrap; }
+.adf-submissions .adf-table-scroll { overflow-x: auto; }
+.adf-submissions .widefat { min-width: 650px; }
+.adf-submissions .check-column { width: 2.2em; padding: 10px; }
+.adf-submissions .adf-preview { width: 45%; overflow-wrap: anywhere; }
+.adf-submissions .adf-note-preview { max-width: 22em; white-space: pre-wrap; overflow-wrap: anywhere; }
+.adf-status { display: inline-block; padding: 2px 8px; border-radius: 3px; font-weight: 600; }
+.adf-status-new { color: #005a2b; background: #d7f0df; }
+.adf-status-read { color: #41474e; background: #eaecf0; }
+.adf-quick-edit { margin-top: 8px; }
+.adf-quick-edit summary { color: #2271b1; cursor: pointer; width: fit-content; }
+.adf-quick-edit[open] { padding: 10px; background: #f6f7f7; border: 1px solid #c3c4c7; }
+.adf-quick-edit label { display: block; margin-bottom: 4px; font-weight: 600; }
+.adf-quick-edit textarea { width: 100%; resize: vertical; }
+.adf-quick-edit p { margin: 10px 0; }
+.adf-delete-confirm { max-width: 70em; }
+.adf-submissions [hidden], .adf-quick-edit [hidden] { display: none !important; }

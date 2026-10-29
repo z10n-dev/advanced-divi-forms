@@ -43,7 +43,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
-          extensions: mysqli
+          extensions: mysqli, zip
           tools: composer:v2, wp-cli
           coverage: none
 
@@ -74,7 +74,9 @@ jobs:
         run: php tests/github-updater.php
 
       - name: Test Divi Visual Builder settings
-        run: node tests/divi-settings.js
+        run: |
+          node tests/divi-settings.js
+          node --check assets/submissions.js
 
       - name: Validate plugin versions
         shell: bash

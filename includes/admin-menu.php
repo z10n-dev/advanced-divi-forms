@@ -281,44 +281,7 @@ function adf_render_discovery_report() {
  * @return void
  */
 function adf_render_submissions( $form ) {
-	adf_require_admin();
-	$query = adf_submission_query( $form->ID, max( 1, adf_admin_query_id( 'adf_paged' ) ) );
-	?>
-	<div class="wrap">
-		<h1><?php echo esc_html( $form->post_title ); ?></h1>
-		<p><a href="<?php echo esc_url( adf_forms_url() ); ?>">&larr; <?php esc_html_e( 'All Forms', 'advanced-divi-forms' ); ?></a></p>
-		<h2><?php esc_html_e( 'Submissions', 'advanced-divi-forms' ); ?></h2>
-		<table class="widefat striped">
-			<thead><tr>
-				<th scope="col"><?php esc_html_e( 'Received', 'advanced-divi-forms' ); ?></th>
-				<th scope="col"><?php esc_html_e( 'Status', 'advanced-divi-forms' ); ?></th>
-				<th scope="col"><?php esc_html_e( 'Preview', 'advanced-divi-forms' ); ?></th>
-			</tr></thead>
-			<tbody>
-			<?php if ( ! $query->posts ) : ?>
-				<tr><td colspan="3"><?php esc_html_e( 'No submissions have been received yet.', 'advanced-divi-forms' ); ?></td></tr>
-			<?php endif; ?>
-			<?php foreach ( $query->posts as $submission ) : ?>
-				<?php
-				$fields = (array) get_post_meta( $submission->ID, '_adf_fields', true );
-				$url    = adf_forms_url(
-					array(
-						'form_id'       => $form->ID,
-						'submission_id' => $submission->ID,
-					)
-				);
-				?>
-				<tr>
-					<td><a href="<?php echo esc_url( $url ); ?>"><?php echo esc_html( get_the_date( 'Y-m-d H:i', $submission ) ); ?></a></td>
-					<td><?php echo get_post_meta( $submission->ID, '_adf_read', true ) ? esc_html__( 'Read', 'advanced-divi-forms' ) : esc_html__( 'New', 'advanced-divi-forms' ); ?></td>
-					<td><?php echo esc_html( wp_trim_words( implode( ' · ', array_map( 'adf_field_text', $fields ) ), 18 ) ); ?></td>
-				</tr>
-			<?php endforeach; ?>
-			</tbody>
-		</table>
-		<?php adf_render_pagination( $query, array( 'form_id' => $form->ID ) ); ?>
-	</div>
-	<?php
+	adf_render_submission_list( $form );
 }
 
 /**
