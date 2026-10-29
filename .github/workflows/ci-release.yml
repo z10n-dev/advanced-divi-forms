@@ -17,6 +17,46 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      
+      - name: Check plugin version bump
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          git fetch origin main
+
+          FILE="advanced-divi-forms.php"
+
+          OLD_VERSION=$(git show origin/main:"$FILE" |
+            sed -nE 's/^[[:space:]]*\* Version:[[:space:]]*([0-9]+\.[0-9]+\.[0-9]+).*/\1/p' |
+            head -1)
+
+          NEW_VERSION=$(sed -nE \
+            's/^[[:space:]]*\* Version:[[:space:]]*([0-9]+\.[0-9]+\.[0-9]+).*/\1/p' \
+            "$FILE" | head -1)
+
+          echo "Current version: $OLD_VERSION"
+          echo "PR version:      $NEW_VERSION"
+
+          if [[ -z "$OLD_VERSION" || -z "$NEW_VERSION" ]]; then
+            echo "::error::Could not read plugin version"
+            exit 1
+          fi
+
+          if [[ "$OLD_VERSION" == "$NEW_VERSION" ]]; then
+            echo "::error::Plugin version must be increased"
+            exit 1
+          fi
+
+          if [[ "$(printf '%s\n' "$OLD_VERSION" "$NEW_VERSION" |
+            sort -V | tail -1)" != "$NEW_VERSION" ]]; then
+            echo "::error::New version must be higher"
+            exit 1
+          fi
+
+          echo "Plugin version increased successfully"
+
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
@@ -49,6 +89,22 @@ jobs:
         run: |
           git fetch origin main
           git merge-base --is-ancestor HEAD origin/main
+      
+      - name: Verify release version
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+
+          PLUGIN_VERSION=$(sed -nE \
+            's/^[[:space:]]*\* Version:[[:space:]]*([0-9]+\.[0-9]+\.[0-9]+).*/\1/p' \
+            advanced-divi-forms.php | head -1)
+
+          if [[ "$TAG_VERSION" != "$PLUGIN_VERSION" ]]; then
+            echo "::error::Tag and plugin version differ"
+            exit 1
+          fi
       
       - name: Build plugin ZIP
         shell: bash
