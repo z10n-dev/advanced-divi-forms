@@ -38,9 +38,9 @@ try {
 	$created[] = $template;
 	$created[] = $confirmation;
 	update_post_meta( $template, '_adf_subject', 'Notification for {{fields.name}}' );
-	update_post_meta( $template, '_adf_html', '<h1>Hello {{fields.name}}</h1><p>{{fields.message}}</p>' );
+	update_post_meta( $template, '_adf_html', '<h1>Hello {{fields.name}}</h1><p>{{fields.message}}</p>{{form.summary}}' );
 	update_post_meta( $confirmation, '_adf_subject', 'Thank you {{fields.name}}' );
-	update_post_meta( $confirmation, '_adf_html', '<p>Your message has arrived.</p>' );
+	update_post_meta( $confirmation, '_adf_html', '<p>Your message has arrived.</p>{{form.summary}}' );
 	$metadata = adf_divi_block_metadata( array( 'name' => 'divi/contact-form', 'attributes' => array() ) );
 	adf_divi_expect( isset( $metadata['attributes']['adf']['settings']['advanced']['notificationTemplate'] ), 'PHP must register the persisted settings schema.' );
 	$other_metadata = array( 'name' => 'core/paragraph' );
@@ -68,7 +68,7 @@ try {
 	adf_divi_expect( is_int( $copied_form ) && $copied_form !== $form, 'Copied UUIDs on different pages must not merge answers.' );
 	$info = array( 'module_slug' => 'divi/contact-form', 'contact_form_unique_id' => $uuid, 'post_id' => $page );
 	$fields = array(
-		'name' => array( 'type' => 'input', 'value' => 'A&B' ),
+		'name' => array( 'type' => 'input', 'label' => 'Your name', 'value' => 'A&B' ),
 		'email' => array( 'type' => 'email', 'value' => 'sender@example.org' ),
 		'message' => array( 'type' => 'text', 'value' => 'Hello from the form' ),
 	);
@@ -90,6 +90,8 @@ try {
 	adf_divi_expect( 'recipient@example.org' === $messages[1]['to'] && in_array( 'Reply-To: sender@example.org', $messages[1]['headers'], true ), 'Original routing and Reply-To must survive.' );
 	adf_divi_expect( in_array( 'Content-Type: text/html; charset=UTF-8', $messages[1]['headers'], true ), 'HTML must be scoped to this message.' );
 	adf_divi_expect( 'sender@example.org' === $messages[2]['to'] && 'Thank you A&B' === $messages[2]['subject'], 'Confirmation must go to the validated Email field.' );
+	adf_divi_expect( str_contains( $messages[1]['message'], '>Your name</th>' ) && str_contains( $messages[2]['message'], '>Your name</th>' ), 'Both notification and confirmation summaries must use validated field labels.' );
+	adf_divi_expect( str_contains( $messages[1]['message'], '>email</th>' ) && ! str_contains( $messages[1]['message'], 'captcha' ), 'Only validated submitted fields belong in the summary, with IDs as fallback.' );
 	$submissions = adf_submission_query( $form );
 	adf_divi_expect( 1 === $submissions->found_posts, 'A validated opt-in submission must be saved once for an anonymous visitor.' );
 	foreach ( $submissions->posts as $submission ) { $created[] = $submission->ID; }

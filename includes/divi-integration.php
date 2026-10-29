@@ -384,9 +384,12 @@ function adf_divi_form_submitted( $fields, $has_error, $info ) {
 	}
 	$context = $GLOBALS['adf_divi_contexts'][ $uuid ];
 	$values  = array();
+	$labels  = array();
 	foreach ( $fields as $key => $field ) {
 		if ( is_array( $field ) ) {
-			$values[ strtolower( (string) $key ) ] = adf_field_text( $field['value'] ?? '' );
+			$key            = strtolower( (string) $key );
+			$values[ $key ] = adf_field_text( $field['value'] ?? '' );
+			$labels[ $key ] = adf_field_text( $field['label'] ?? '' );
 		}
 	}
 	$attrs = $context['attrs'];
@@ -407,6 +410,7 @@ function adf_divi_form_submitted( $fields, $has_error, $info ) {
 	$GLOBALS['adf_divi_pending_mail'] = array(
 		'form_id'      => $context['form_id'],
 		'values'       => $values,
+		'labels'       => $labels,
 		'notification' => absint( adf_divi_setting( $attrs, 'notificationTemplate', '0' ) ),
 		'confirmation' => absint( adf_divi_setting( $attrs, 'confirmationTemplate', '0' ) ),
 		'email'        => $email,
@@ -447,7 +451,7 @@ function adf_divi_mail_args( $args ) {
 	if ( ! $pending['notification'] ) {
 		return $args;
 	}
-	$template = adf_render_mail_template( $pending['notification'], $pending['values'] );
+	$template = adf_render_mail_template( $pending['notification'], $pending['values'], $pending['labels'] );
 	if ( is_wp_error( $template ) ) {
 		// A deleted/draft/empty template must not suppress Divi's original email.
 		return $args;
@@ -502,7 +506,7 @@ function adf_divi_mail_succeeded() {
 	if ( ! $pending['confirmation'] || ! $pending['email'] ) {
 		return;
 	}
-	$template = adf_render_mail_template( $pending['confirmation'], $pending['values'] );
+	$template = adf_render_mail_template( $pending['confirmation'], $pending['values'], $pending['labels'] );
 	if ( ! is_wp_error( $template ) ) {
 		wp_mail( $pending['email'], $template['subject'], $template['html'], array( 'Content-Type: text/html; charset=UTF-8' ) );
 	}
