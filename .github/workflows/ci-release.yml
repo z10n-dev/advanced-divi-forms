@@ -1,0 +1,64 @@
+name: Plugin CI and Release
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate plugin
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: none
+      - name: Check plugin header and PHP syntax
+        run: |
+          set -euo pipefail
+          test -f advanced-divi-forms.php
+          grep -q 'Plugin Name: Advanced Divi Forms' advanced-divi-forms.php
+          find . -type f -name '*.php' -not -path './vendor/*' -print0 | xargs -0 -r -n1 php -l
+      - name: Confirm release tag matches plugin version
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          set -euo pipefail
+          version="${GITHUB_REF_NAME#v}"
+          grep -Eq "^[[:space:]]*\*[[:space:]]*Version: ${version//./\.}[[:space:]]*$" advanced-divi-forms.php
+
+  release:
+    name: Publish release ZIP
+    needs: validate
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Require tag to be reachable from main
+        run: |
+          git fetch origin main
+          git merge-base --is-ancestor HEAD origin/main
+      - name: Build ZIP with stable plugin directory
+        run: |
+          set -euo pipefail
+          mkdir -p dist/staging/advanced-divi-forms
+          cp advanced-divi-forms.php dist/staging/advanced-divi-forms/
+          cp -r includes dist/staging/advanced-divi-forms/
+          cp -r templates dist/staging/advanced-divi-forms/
+          (cd dist/staging && zip -qr ../advanced-divi-forms.zip advanced-divi-forms)
+          unzip -t dist/advanced-divi-forms.zip
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" dist/advanced-divi-forms.zip --title "$GITHUB_REF_NAME" --generate-notes --verify-tag
