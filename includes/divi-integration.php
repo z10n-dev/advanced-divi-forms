@@ -159,6 +159,22 @@ function adf_divi_setting( array $attrs, $key, $fallback = '' ) {
 }
 
 /**
+ * Prefer a non-empty admin label, then the visible title, then a safe default.
+ *
+ * @param array $attrs Module attributes.
+ * @return string
+ */
+function adf_divi_form_name( array $attrs ) {
+	foreach ( array( $attrs['module']['meta']['adminLabel']['desktop']['value'] ?? '', $attrs['title']['innerContent']['desktop']['value'] ?? '' ) as $name ) {
+		$name = is_string( $name ) ? sanitize_text_field( $name ) : '';
+		if ( '' !== $name ) {
+			return $name;
+		}
+	}
+	return __( 'Contact Form', 'advanced-divi-forms' );
+}
+
+/**
  * Register a module using page ID plus persistent UUID, never its order index.
  *
  * @param int    $page_id Source page ID.
@@ -170,9 +186,7 @@ function adf_register_divi_form( $page_id, $uuid, array $attrs ) {
 	if ( ! $page_id || '' === $uuid ) {
 		return new WP_Error( 'adf_divi_identity', __( 'The Divi form has no stable identity.', 'advanced-divi-forms' ) );
 	}
-	$name = $attrs['module']['meta']['adminLabel']['desktop']['value'] ?? $attrs['title']['innerContent']['desktop']['value'] ?? '';
-	$name = is_string( $name ) ? sanitize_text_field( $name ) : '';
-	$id   = adf_register_form( 'divi5:' . absint( $page_id ) . ':' . $uuid, $name ? $name : __( 'Contact Form', 'advanced-divi-forms' ), $page_id );
+	$id = adf_register_form( 'divi5:' . absint( $page_id ) . ':' . $uuid, adf_divi_form_name( $attrs ), $page_id );
 	if ( ! is_wp_error( $id ) ) {
 		update_post_meta( $id, '_adf_divi_uuid', sanitize_text_field( $uuid ) );
 	}
@@ -180,33 +194,93 @@ function adf_register_divi_form( $page_id, $uuid, array $attrs ) {
 }
 
 /**
- * Index forms directly contained in saved Divi block content (no rendering).
+ * Read saved Divi form definitions without executing shortcodes or rendering.
+ *
+ * Divi 5 can still contain legacy shortcode content awaiting migration.
+ * A missing UUID is reported, never replaced with an unstable positional ID.
+ *
+ * @param string $content Saved source content.
+ * @return array
+ */
+function adf_extract_divi_forms( $content ) {
+	$forms = array();
+	if ( str_contains( $content, 'wp:divi/contact-form' ) ) {
+		$parser = new WP_Block_Parser();
+		$walk   = static function ( $blocks ) use ( &$walk, &$forms ) {
+			foreach ( $blocks as $block ) {
+				if ( 'divi/contact-form' === $block['blockName'] ) {
+					$attrs   = $block['attrs'];
+					$uuid    = $attrs['module']['advanced']['uniqueId']['desktop']['value'] ?? '';
+					$forms[] = array(
+						'attrs'  => $attrs,
+						'uuid'   => is_string( $uuid ) ? trim( $uuid ) : '',
+						'format' => 'block',
+					);
+				}
+				$walk( $block['innerBlocks'] );
+			}
+		};
+		$walk( $parser->parse( $content ) );
+	}
+	if ( str_contains( $content, '[et_pb_contact_form' ) ) {
+		preg_match_all( '/' . get_shortcode_regex( array( 'et_pb_contact_form' ) ) . '/s', $content, $matches, PREG_SET_ORDER );
+		foreach ( $matches as $match ) {
+			if ( '[' === $match[1] && ']' === $match[6] ) {
+				continue; // Escaped shortcode examples are not forms.
+			}
+			$legacy = shortcode_parse_atts( $match[3] );
+			$legacy = is_array( $legacy ) ? $legacy : array();
+			$uuid   = $legacy['_unique_id'] ?? '';
+
+			$forms[] = array(
+				'attrs'  => array(
+					'module' => array( 'meta' => array( 'adminLabel' => array( 'desktop' => array( 'value' => $legacy['admin_label'] ?? '' ) ) ) ),
+					'title'  => array( 'innerContent' => array( 'desktop' => array( 'value' => $legacy['title'] ?? '' ) ) ),
+				),
+				'uuid'   => is_string( $uuid ) ? trim( $uuid ) : '',
+				'format' => 'shortcode',
+			);
+		}
+	}
+	return $forms;
+}
+
+/**
+ * Index saved forms and return non-sensitive discovery diagnostics.
  *
  * @param int     $post_id Source post ID.
  * @param WP_Post $post    Saved post.
- * @return void
+ * @return array Counts and issues, without form fields or page content.
  */
 function adf_sync_divi_post( $post_id, $post ) {
+	$result = array(
+		'found'   => 0,
+		'indexed' => 0,
+		'issues'  => array(),
+	);
 	if ( ! $post instanceof WP_Post || wp_is_post_revision( $post_id ) || wp_is_post_autosave( $post_id ) || ! adf_divi_source_type( $post->post_type ) || 'trash' === $post->post_status ) {
-		return;
+		return $result;
 	}
-	if ( ! str_contains( $post->post_content, 'wp:divi/contact-form' ) ) {
-		return;
-	}
-	$parser = new WP_Block_Parser();
-	$walk   = static function ( $blocks ) use ( &$walk, $post_id ) {
-		foreach ( $blocks as $block ) {
-			if ( 'divi/contact-form' === $block['blockName'] ) {
-				$attrs = $block['attrs'];
-				$uuid  = $attrs['module']['advanced']['uniqueId']['desktop']['value'] ?? '';
-				if ( is_string( $uuid ) && '' !== $uuid ) {
-					adf_register_divi_form( $post_id, $uuid, $attrs );
-				}
+	foreach ( adf_extract_divi_forms( $post->post_content ) as $form ) {
+		++$result['found'];
+		$reason = 'missing_uuid';
+		if ( '' !== $form['uuid'] ) {
+			$id = adf_register_divi_form( $post_id, $form['uuid'], $form['attrs'] );
+			if ( ! is_wp_error( $id ) ) {
+				++$result['indexed'];
+				update_post_meta( $id, '_adf_divi_source_format', $form['format'] );
+				continue;
 			}
-			$walk( $block['innerBlocks'] );
+			$reason = 'storage_failed';
 		}
-	};
-	$walk( $parser->parse( $post->post_content ) );
+		$result['issues'][] = array(
+			'post_id' => $post_id,
+			'name'    => adf_divi_form_name( $form['attrs'] ),
+			'format'  => $form['format'],
+			'reason'  => $reason,
+		);
+	}
+	return $result;
 }
 
 /**
@@ -453,23 +527,27 @@ function adf_divi_mail_failed() {
 function adf_discover_divi_forms() {
 	adf_require_admin();
 	check_admin_referer( 'adf_discover_forms' );
-	$page  = isset( $_POST['scan_page'] ) && is_scalar( $_POST['scan_page'] ) ? max( 1, absint( $_POST['scan_page'] ) ) : 1;
-	$types = array_filter( get_post_types(), 'adf_divi_source_type' );
-	$query = new WP_Query(
-		array(
-			'post_type'      => array_values( $types ),
-			'post_status'    => array( 'publish', 'private', 'draft' ),
-			's'              => 'wp:divi/contact-form',
-			'sentence'       => true,
-			'posts_per_page' => 100,
-			'paged'          => $page,
-			'orderby'        => 'ID',
-			'order'          => 'ASC',
-		)
-	);
-	foreach ( $query->posts as $post ) {
-		adf_sync_divi_post( $post->ID, $post );
+	$page   = isset( $_POST['scan_page'] ) && is_scalar( $_POST['scan_page'] ) ? max( 1, absint( $_POST['scan_page'] ) ) : 1;
+	$key    = 'adf_discovery_' . get_current_user_id();
+	$report = $page > 1 ? get_transient( $key ) : false;
+	if ( ! is_array( $report ) ) {
+		$report = array(
+			'scanned' => 0,
+			'found'   => 0,
+			'indexed' => 0,
+			'issues'  => array(),
+		);
 	}
+	$query = adf_divi_discovery_query( $page );
+	foreach ( $query->posts as $post ) {
+		$result             = adf_sync_divi_post( $post->ID, $post );
+		$report['found']   += $result['found'];
+		$report['indexed'] += $result['indexed'];
+		++$report['scanned'];
+		// Bound diagnostic storage; counters still cover all scanned source posts.
+		$report['issues'] = array_slice( array_merge( $report['issues'], $result['issues'] ), 0, 100 );
+	}
+	set_transient( $key, $report, HOUR_IN_SECONDS );
 	wp_safe_redirect(
 		adf_forms_url(
 			array(
@@ -479,4 +557,43 @@ function adf_discover_divi_forms() {
 		)
 	);
 	exit;
+}
+
+/**
+ * Search both supported storage formats, without changing unrelated WP queries.
+ *
+ * @param int $page Discovery batch number.
+ * @return WP_Query
+ */
+function adf_divi_discovery_query( $page = 1 ) {
+	$types  = array_filter( get_post_types(), 'adf_divi_source_type' );
+	$search = static function ( $sql, $query ) {
+		if ( ! $query->get( 'adf_discovery' ) ) {
+			return $sql;
+		}
+		global $wpdb;
+		return $sql . $wpdb->prepare(
+			' AND (%i.post_content LIKE %s OR %i.post_content LIKE %s) ',
+			$wpdb->posts,
+			'%' . $wpdb->esc_like( 'wp:divi/contact-form' ) . '%',
+			$wpdb->posts,
+			'%' . $wpdb->esc_like( '[et_pb_contact_form' ) . '%'
+		);
+	};
+	add_filter( 'posts_search', $search, 10, 2 );
+	try {
+		return new WP_Query(
+			array(
+				'post_type'      => array_values( $types ),
+				'post_status'    => array( 'publish', 'private', 'draft', 'pending', 'future' ),
+				'adf_discovery'  => true,
+				'posts_per_page' => 100,
+				'paged'          => max( 1, absint( $page ) ),
+				'orderby'        => 'ID',
+				'order'          => 'ASC',
+			)
+		);
+	} finally {
+		remove_filter( 'posts_search', $search, 10 );
+	}
 }

@@ -175,9 +175,7 @@ function adf_render_forms_overview() {
 			<?php wp_nonce_field( 'adf_discover_forms' ); ?>
 			<?php submit_button( adf_admin_query_id( 'scan_next' ) ? __( 'Continue discovery', 'advanced-divi-forms' ) : __( 'Discover existing forms', 'advanced-divi-forms' ), 'secondary' ); ?>
 		</form>
-		<?php if ( adf_admin_query_id( 'scan_done' ) ) : ?>
-			<div class="notice notice-success inline"><p><?php esc_html_e( 'Discovery batch completed. If more pages remain, use Continue discovery.', 'advanced-divi-forms' ); ?></p></div>
-		<?php endif; ?>
+		<?php adf_render_discovery_report(); ?>
 		<table class="widefat striped">
 			<thead><tr>
 				<th scope="col"><?php esc_html_e( 'Form', 'advanced-divi-forms' ); ?></th>
@@ -198,6 +196,9 @@ function adf_render_forms_overview() {
 				<tr>
 					<td>
 						<a href="<?php echo esc_url( adf_forms_url( array( 'form_id' => $form->ID ) ) ); ?>"><?php echo esc_html( $form->post_title ); ?></a>
+						<?php if ( 'shortcode' === get_post_meta( $form->ID, '_adf_divi_source_format', true ) ) : ?>
+							<p class="description"><?php esc_html_e( 'Legacy Divi shortcode. Convert the source to Divi 5 before using template selection and answer capture.', 'advanced-divi-forms' ); ?></p>
+						<?php endif; ?>
 						<?php if ( get_post_meta( $form->ID, '_adf_storage_error', true ) ) : ?>
 							<p class="description"><?php esc_html_e( 'The last submission could not be stored. Check the database before relying on capture.', 'advanced-divi-forms' ); ?></p>
 						<?php endif; ?>
@@ -211,6 +212,65 @@ function adf_render_forms_overview() {
 		</table>
 		<?php adf_render_pagination( $query ); ?>
 	</div>
+	<?php
+}
+
+/**
+ * Explain the last discovery run, including found forms that could not be indexed.
+ *
+ * @return void
+ */
+function adf_render_discovery_report() {
+	adf_require_admin();
+	$report = get_transient( 'adf_discovery_' . get_current_user_id() );
+	if ( ! is_array( $report ) ) {
+		return;
+	}
+	?>
+	<div class="notice notice-info inline">
+		<h2><?php esc_html_e( 'Discovery Results', 'advanced-divi-forms' ); ?></h2>
+		<ul>
+			<li><?php esc_html_e( 'Source posts checked:', 'advanced-divi-forms' ); ?> <?php echo esc_html( number_format_i18n( $report['scanned'] ) ); ?></li>
+			<li><?php esc_html_e( 'Form definitions found:', 'advanced-divi-forms' ); ?> <?php echo esc_html( number_format_i18n( $report['found'] ) ); ?></li>
+			<li><?php esc_html_e( 'Forms with stable IDs indexed:', 'advanced-divi-forms' ); ?> <?php echo esc_html( number_format_i18n( $report['indexed'] ) ); ?></li>
+		</ul>
+		<p><?php esc_html_e( 'Counts include all completed batches, including forms already indexed. If more source posts remain, use Continue discovery. These diagnostics expire after one hour.', 'advanced-divi-forms' ); ?></p>
+	</div>
+	<?php if ( ! empty( $report['issues'] ) ) : ?>
+		<h2><?php esc_html_e( 'Detected Forms Requiring Attention', 'advanced-divi-forms' ); ?></h2>
+		<p><?php esc_html_e( 'Up to 100 diagnostics are shown. No source page content has been modified.', 'advanced-divi-forms' ); ?></p>
+		<table class="widefat striped">
+			<thead><tr>
+				<th scope="col"><?php esc_html_e( 'Form', 'advanced-divi-forms' ); ?></th>
+				<th scope="col"><?php esc_html_e( 'Source Page', 'advanced-divi-forms' ); ?></th>
+				<th scope="col"><?php esc_html_e( 'Format', 'advanced-divi-forms' ); ?></th>
+				<th scope="col"><?php esc_html_e( 'Next Step', 'advanced-divi-forms' ); ?></th>
+			</tr></thead>
+			<tbody>
+			<?php foreach ( $report['issues'] as $issue ) : ?>
+				<?php $edit_url = get_edit_post_link( $issue['post_id'], 'raw' ); ?>
+				<tr>
+					<td><?php echo esc_html( $issue['name'] ); ?></td>
+					<td>
+						<?php if ( $edit_url ) : ?>
+							<a href="<?php echo esc_url( $edit_url ); ?>"><?php echo esc_html( get_the_title( $issue['post_id'] ) ); ?></a>
+						<?php else : ?>
+							<?php echo esc_html( get_the_title( $issue['post_id'] ) ); ?>
+						<?php endif; ?>
+					</td>
+					<td><?php echo 'shortcode' === $issue['format'] ? esc_html__( 'Legacy Divi shortcode', 'advanced-divi-forms' ) : esc_html__( 'Divi 5 block', 'advanced-divi-forms' ); ?></td>
+					<td>
+						<?php if ( 'missing_uuid' === $issue['reason'] ) : ?>
+							<?php esc_html_e( 'No persistent module UUID was saved. Open or migrate this source in the Divi 5 Builder. If saving alone does not assign an ID, test a newly added or duplicated Contact Form on staging. Run discovery again afterward. Positional IDs are not used because they could mix answers after reordering.', 'advanced-divi-forms' ); ?>
+						<?php else : ?>
+							<?php esc_html_e( 'The form was found, but its index record could not be saved. Check the database and retry.', 'advanced-divi-forms' ); ?>
+						<?php endif; ?>
+					</td>
+				</tr>
+			<?php endforeach; ?>
+			</tbody>
+		</table>
+	<?php endif; ?>
 	<?php
 }
 

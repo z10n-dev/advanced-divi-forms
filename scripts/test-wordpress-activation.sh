@@ -60,6 +60,7 @@ WP_CLI::success( "Plugin activation and subsequent WordPress bootstrap passed." 
 # Exercise the installed release ZIP against real WordPress APIs.
 wp_test eval-file "$(dirname "$(realpath "$0")")/../tests/admin-integration.php"
 wp_test eval-file "$(dirname "$(realpath "$0")")/../tests/divi-integration.php"
+wp_test eval-file "$(dirname "$(realpath "$0")")/../tests/divi-discovery.php"
 
 # Optional local vendor test. The licensed source is never bundled or uploaded.
 if [[ -n "${ADF_DIVI_THEME_DIR:-}" ]]; then
