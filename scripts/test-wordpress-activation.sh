@@ -57,6 +57,18 @@ if ( ! defined( "ADF_PLUGIN_VERSION" ) || ! function_exists( "adf_check_github_u
 WP_CLI::success( "Plugin activation and subsequent WordPress bootstrap passed." );
 '
 
+# Exercise the installed release ZIP against real WordPress APIs.
+wp_test eval-file "$(dirname "$(realpath "$0")")/../tests/admin-integration.php"
+wp_test eval-file "$(dirname "$(realpath "$0")")/../tests/divi-integration.php"
+
+# Optional local vendor test. The licensed source is never bundled or uploaded.
+if [[ -n "${ADF_DIVI_THEME_DIR:-}" ]]; then
+  test -f "$ADF_DIVI_THEME_DIR/style.css"
+  cp -r "$ADF_DIVI_THEME_DIR" "$WP_DIR/wp-content/themes/Divi"
+  wp_test theme activate Divi
+  wp_test eval-file "$(dirname "$(realpath "$0")")/../tests/divi-live.php"
+fi
+
 if [[ -f "$WP_DIR/wp-content/debug.log" ]] &&
    grep -Eiq 'PHP (Fatal error|Parse error|Recoverable fatal error)|Uncaught (Error|Exception)' "$WP_DIR/wp-content/debug.log"; then
   echo "::error::Fatal PHP error found in the WordPress debug log"

@@ -67,10 +67,14 @@ jobs:
             -not -path './vendor/*' \
             -not -path './.ci/vendor/*' \
             -not -path './dist/*' \
+            -not -path './Divi/*' \
             -print0 | xargs -0 -r -n1 php -l
 
       - name: Test GitHub updater
         run: php tests/github-updater.php
+
+      - name: Test Divi Visual Builder settings
+        run: node tests/divi-settings.js
 
       - name: Validate plugin versions
         shell: bash
