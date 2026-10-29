@@ -57,8 +57,10 @@ function adf_render_submission_quick_edit( $submission, $page = 1 ) {
 				<textarea id="adf-note-<?php echo esc_attr( $submission->ID ); ?>" name="note" rows="4" maxlength="5000"><?php echo esc_textarea( $note ); ?></textarea>
 			</p>
 			<p class="description"><?php esc_html_e( 'Admin-only note. Original submitted values remain unchanged. Notes are included in Excel exports.', 'advanced-divi-forms' ); ?></p>
-			<?php submit_button( __( 'Save changes', 'advanced-divi-forms' ), 'secondary', 'save', false ); ?>
-			<button type="button" class="button adf-cancel-edit" hidden><?php esc_html_e( 'Cancel', 'advanced-divi-forms' ); ?></button>
+			<div class="adf-quick-edit-actions">
+				<?php submit_button( __( 'Save changes', 'advanced-divi-forms' ), 'secondary', 'save', false ); ?>
+				<button type="button" class="button adf-cancel-edit" hidden><?php esc_html_e( 'Cancel', 'advanced-divi-forms' ); ?></button>
+			</div>
 		</form>
 	</details>
 	<?php
