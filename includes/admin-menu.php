@@ -295,7 +295,7 @@ function adf_render_submission( $form, $submission ) {
 	adf_require_admin();
 	$fields = (array) get_post_meta( $submission->ID, '_adf_fields', true );
 	?>
-	<div class="wrap">
+	<div class="wrap adf-submission-detail">
 		<h1><?php echo esc_html( $form->post_title ); ?> — <?php esc_html_e( 'Submission', 'advanced-divi-forms' ); ?></h1>
 		<p><a href="<?php echo esc_url( adf_forms_url( array( 'form_id' => $form->ID ) ) ); ?>">&larr; <?php esc_html_e( 'Back to submissions', 'advanced-divi-forms' ); ?></a></p>
 		<p><?php echo esc_html( get_the_date( 'Y-m-d H:i', $submission ) ); ?></p>
@@ -307,15 +307,15 @@ function adf_render_submission( $form, $submission ) {
 			<?php endforeach; ?>
 			</tbody>
 		</table>
-		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+		<form class="adf-submission-actions" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 			<input type="hidden" name="action" value="adf_update_submission">
 			<input type="hidden" name="submission_id" value="<?php echo esc_attr( $submission->ID ); ?>">
 			<?php wp_nonce_field( 'adf_submission_' . $submission->ID ); ?>
 			<?php if ( ! get_post_meta( $submission->ID, '_adf_read', true ) ) : ?>
-				<?php submit_button( __( 'Mark as read', 'advanced-divi-forms' ), 'secondary', 'adf_mark_read', false ); ?>
+				<div class="adf-single-status-action"><?php submit_button( __( 'Mark as read', 'advanced-divi-forms' ), 'secondary', 'adf_mark_read', false ); ?></div>
 			<?php endif; ?>
-			<p><label><input type="checkbox" name="adf_confirm_delete" value="1"> <?php esc_html_e( 'I confirm that this submission should be permanently deleted.', 'advanced-divi-forms' ); ?></label></p>
-			<?php submit_button( __( 'Delete permanently', 'advanced-divi-forms' ), 'delete', 'adf_delete', false ); ?>
+			<p class="adf-delete-confirm"><label><input type="checkbox" name="adf_confirm_delete" value="1"> <?php esc_html_e( 'I confirm that this submission should be permanently deleted.', 'advanced-divi-forms' ); ?></label></p>
+			<?php submit_button( __( 'Delete permanently', 'advanced-divi-forms' ), 'delete adf-button-danger', 'adf_delete', false ); ?>
 		</form>
 	</div>
 	<?php

@@ -36,6 +36,9 @@
 	boxes.forEach(function (box) { box.addEventListener('change', updateSelection); });
 	function updateOperation() {
 		var deleting = operation && operation.value === 'delete';
+		if (apply) {
+			apply.classList.toggle('adf-button-danger', Boolean(deleting));
+		}
 		if (confirmation) {
 			confirmation.hidden = !deleting;
 		}
