@@ -49,12 +49,24 @@ executed. Template changes apply when the same ID is rendered again.
    affects future submissions without changing its ID in the form.
 
 Forms are indexed when saving or rendering their source pages. Use **Forms → All
-Forms → Discover existing forms** for old content; discovery handles at most 100
-matching source posts per batch, with a Continue button when more remain. It
+Forms → Discover existing forms** for old content; discovery recognizes both Divi 5
+blocks and legacy `[et_pb_contact_form]` shortcodes without rendering/executing them.
+It handles at most 100 matching source posts per batch, with a Continue button when more remain. It
 includes registered public post types and Divi library/theme-builder layouts.
 There is no need to resubmit an answer just to discover a form. Records are keyed
 by source post ID plus persistent module UUID, not a position-dependent CSS index.
-Old modules without a persisted UUID must first be saved in Divi. Removed source
+Discovery results distinguish source posts checked, form definitions found and
+forms indexed. Definitions without a UUID appear under **Detected Forms Requiring
+Attention**, with the source page and next step, rather than silently disappearing.
+Diagnostics are private to the current administrator, expire after an hour and are
+limited to 100 issue entries. Discovery never rewrites page content or assigns IDs.
+Old modules without a persisted UUID need attention in Divi. In Divi 5.16.0 the
+UUID is assigned when adding or cloning a Contact Form; simply resaving an existing
+ID-less module may not assign it. Test a newly added/duplicated module on staging
+if needed, preserving the original settings and content. Indexed legacy
+shortcodes are marked as such: the template/capture integration still requires
+Divi 5's native handler, not the Divi 4 shortcode handler. Migrating a form with its
+existing UUID preserves its index and historical answers. Removed source
 forms retain their historical answers; discovery does not delete data.
 
 Shared layouts are resolved by an indexed, unambiguous UUID. Run discovery before
