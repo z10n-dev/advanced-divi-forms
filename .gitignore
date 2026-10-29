@@ -2,6 +2,7 @@
 /.ci/vendor/
 /node_modules/
 /.direnv/
+/Divi/
 .env
 .env.*
 !.env.example

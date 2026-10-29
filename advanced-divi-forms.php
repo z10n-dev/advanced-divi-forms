@@ -3,7 +3,7 @@
  * Plugin Name: Advanced Divi Forms
  * Plugin URI: https://github.com/z10n-dev/advanced-divi-forms
  * Description: Custom enhancements for Divi contact forms.
- * Version: 0.2.1
+ * Version: 0.3.0
  * Requires at least: 6.2
  * Requires PHP: 8.2
  * Author: z10n-dev
@@ -19,9 +19,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 define( 'ADF_PLUGIN_FILE', __FILE__ );
-define( 'ADF_PLUGIN_VERSION', '0.2.1' );
+define( 'ADF_PLUGIN_VERSION', '0.3.0' );
 
 require_once __DIR__ . '/includes/github-updater.php';
+require_once __DIR__ . '/includes/form-data.php';
+require_once __DIR__ . '/includes/mail-templates.php';
 require_once __DIR__ . '/includes/admin-menu.php';
-
-// Add Divi 5 form integration separately after validating hook parameters.
+require_once __DIR__ . '/includes/divi-integration.php';
