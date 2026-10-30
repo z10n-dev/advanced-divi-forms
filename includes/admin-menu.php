@@ -10,6 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 add_action( 'admin_menu', 'adf_register_admin_menu' );
+add_action( 'load-toplevel_page_advanced-divi-forms', 'adf_validate_forms_route' );
 add_action( 'admin_post_adf_update_submission', 'adf_update_submission' );
 
 /**
@@ -119,26 +120,57 @@ function adf_render_pagination( $query, array $args = array() ) {
  * @return void
  */
 function adf_render_forms_page() {
+	$route = adf_resolve_forms_route();
+	if ( ! $route['form'] ) {
+		adf_render_forms_overview();
+	} elseif ( $route['submission'] ) {
+		adf_render_submission( $route['form'], $route['submission'] );
+	} else {
+		adf_render_submissions( $route['form'] );
+	}
+}
+
+/**
+ * Validate the route before WordPress emits admin HTML and commits HTTP headers.
+ *
+ * @return void
+ */
+function adf_validate_forms_route() {
+	adf_resolve_forms_route();
+}
+
+/**
+ * Resolve only records in the chosen form and validated active/trash view.
+ *
+ * @return array Authorized form and optional submission.
+ */
+function adf_resolve_forms_route() {
 	adf_require_admin();
 	$form_id       = adf_admin_query_id( 'form_id' );
 	$submission_id = adf_admin_query_id( 'submission_id' );
 	if ( ! $form_id ) {
-		adf_render_forms_overview();
-		return;
+		return array(
+			'form'       => null,
+			'submission' => null,
+		);
 	}
 	$form = get_post( $form_id );
 	if ( ! $form || 'adf_form' !== $form->post_type || 'private' !== $form->post_status ) {
 		wp_die( esc_html__( 'The form does not exist.', 'advanced-divi-forms' ), '', array( 'response' => 404 ) );
 	}
+	$filters    = adf_current_submission_filters();
+	$submission = null;
 	if ( $submission_id ) {
+		$status     = 'trash' === $filters['adf_view'] ? 'trash' : 'private';
 		$submission = get_post( $submission_id );
-		if ( ! $submission || 'adf_submission' !== $submission->post_type || 'private' !== $submission->post_status || $form_id !== (int) $submission->post_parent ) {
+		if ( ! $submission || 'adf_submission' !== $submission->post_type || $submission->post_status !== $status || $form_id !== (int) $submission->post_parent ) {
 			wp_die( esc_html__( 'The submission does not exist for this form.', 'advanced-divi-forms' ), '', array( 'response' => 404 ) );
 		}
-		adf_render_submission( $form, $submission );
-		return;
 	}
-	adf_render_submissions( $form );
+	return array(
+		'form'       => $form,
+		'submission' => $submission,
+	);
 }
 
 /**
@@ -289,6 +321,7 @@ function adf_render_submissions( $form ) {
 function adf_render_submission( $form, $submission ) {
 	adf_require_admin();
 	$filters  = adf_current_submission_filters();
+	$in_trash = 'trash' === $submission->post_status;
 	$page     = max( 1, adf_admin_query_id( 'adf_paged' ) );
 	$fields   = (array) get_post_meta( $submission->ID, '_adf_fields', true );
 	$back_url = adf_forms_url(
@@ -319,11 +352,16 @@ function adf_render_submission( $form, $submission ) {
 			<input type="hidden" name="return_page" value="<?php echo esc_attr( $page ); ?>">
 			<?php adf_render_submission_filter_fields( $filters ); ?>
 			<?php wp_nonce_field( 'adf_submission_' . $submission->ID ); ?>
-			<?php if ( ! get_post_meta( $submission->ID, '_adf_read', true ) ) : ?>
+			<?php if ( ! $in_trash && ! get_post_meta( $submission->ID, '_adf_read', true ) ) : ?>
 				<div class="adf-single-status-action"><?php submit_button( __( 'Mark as read', 'advanced-divi-forms' ), 'secondary', 'adf_mark_read', false ); ?></div>
 			<?php endif; ?>
+			<?php if ( $in_trash ) : ?>
+				<div class="adf-single-status-action"><?php submit_button( __( 'Restore submission', 'advanced-divi-forms' ), 'secondary', 'adf_restore', false ); ?></div>
 			<p class="adf-delete-confirm"><label><input type="checkbox" name="adf_confirm_delete" value="1"><span><?php esc_html_e( 'I confirm that this submission should be permanently deleted.', 'advanced-divi-forms' ); ?></span></label></p>
-			<?php submit_button( __( 'Delete permanently', 'advanced-divi-forms' ), 'delete adf-button-danger', 'adf_delete', false ); ?>
+				<?php submit_button( __( 'Delete permanently', 'advanced-divi-forms' ), 'delete adf-button-danger', 'adf_delete', false ); ?>
+			<?php else : ?>
+				<?php submit_button( __( 'Move to Trash', 'advanced-divi-forms' ), 'delete adf-button-danger', 'adf_trash', false ); ?>
+			<?php endif; ?>
 		</form>
 	</div>
 	<?php
@@ -339,23 +377,48 @@ function adf_update_submission() {
 	if ( ! isset( $_SERVER['REQUEST_METHOD'] ) || 'post' !== sanitize_key( wp_unslash( $_SERVER['REQUEST_METHOD'] ) ) ) {
 		wp_die( esc_html__( 'Use a POST request for submission actions.', 'advanced-divi-forms' ), '', array( 'response' => 405 ) );
 	}
-	// phpcs:ignore WordPress.Security.NonceVerification.Missing -- ID is needed to verify the item-specific nonce below.
-	$id = isset( $_POST['submission_id'] ) && is_scalar( $_POST['submission_id'] ) ? absint( $_POST['submission_id'] ) : 0;
+	// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Exact canonical ID is validated before the item-scoped nonce.
+	$value = isset( $_POST['submission_id'] ) && ( is_int( $_POST['submission_id'] ) || is_string( $_POST['submission_id'] ) ) ? (string) wp_unslash( $_POST['submission_id'] ) : '';
+	$id    = preg_match( '/^[1-9][0-9]*$/D', $value ) && (string) (int) $value === $value ? (int) $value : 0;
 	check_admin_referer( 'adf_submission_' . $id );
-	// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Known filter values are validated by the parser.
+	// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- The filter parser validates known keys and ignores all other input.
 	$filters = adf_parse_submission_filters( wp_unslash( $_POST ) );
 	if ( is_wp_error( $filters ) ) {
 		wp_die( esc_html( $filters->get_error_message() ), '', array( 'response' => 400 ) );
 	}
 	$submission = get_post( $id );
-	if ( ! $submission || 'adf_submission' !== $submission->post_type || 'private' !== $submission->post_status ) {
+	if ( ! $submission || 'adf_submission' !== $submission->post_type || ! in_array( $submission->post_status, array( 'private', 'trash' ), true ) ) {
 		wp_die( esc_html__( 'The submission does not exist.', 'advanced-divi-forms' ), '', array( 'response' => 404 ) );
 	}
+	$operations = array();
+	foreach ( array(
+		'adf_mark_read' => 'mark_read',
+		'adf_trash'     => 'trash',
+		'adf_restore'   => 'restore',
+		'adf_delete'    => 'delete',
+	) as $button => $operation ) {
+		if ( isset( $_POST[ $button ] ) ) {
+			if ( ! is_scalar( $_POST[ $button ] ) ) {
+				wp_die( esc_html__( 'Choose one submission action.', 'advanced-divi-forms' ), '', array( 'response' => 400 ) );
+			}
+			$operations[] = $operation;
+		}
+	}
+	if ( 1 !== count( $operations ) ) {
+		wp_die( esc_html__( 'Choose one submission action.', 'advanced-divi-forms' ), '', array( 'response' => 400 ) );
+	}
 	$form_id = (int) $submission->post_parent;
-	if ( isset( $_POST['adf_mark_read'] ) ) {
-		update_post_meta( $id, '_adf_read', 1 );
-	} elseif ( isset( $_POST['adf_delete'], $_POST['adf_confirm_delete'] ) && '1' === $_POST['adf_confirm_delete'] ) {
-		wp_delete_post( $id, true );
+	$options = array( 'confirm_delete' => isset( $_POST['adf_confirm_delete'] ) && '1' === $_POST['adf_confirm_delete'] ? '1' : '' );
+	$result  = adf_apply_submission_action( $form_id, array( $id ), $operations[0], $options );
+	if ( is_wp_error( $result ) ) {
+		wp_die(
+			esc_html( $result->get_error_message() ),
+			'',
+			array(
+				'response'  => 400,
+				'back_link' => true,
+			)
+		);
 	}
 	$page = isset( $_POST['return_page'] ) && is_scalar( $_POST['return_page'] ) ? max( 1, absint( $_POST['return_page'] ) ) : 1;
 	wp_safe_redirect(
@@ -363,8 +426,9 @@ function adf_update_submission() {
 			array_merge(
 				adf_submission_filter_args( $filters ),
 				array(
-					'form_id'   => $form_id,
-					'adf_paged' => $page,
+					'form_id'     => $form_id,
+					'adf_paged'   => $page,
+					'adf_updated' => $result,
 				)
 			)
 		)

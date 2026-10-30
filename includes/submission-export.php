@@ -119,6 +119,11 @@ function adf_create_submission_export( $form_id, array $ids = array(), array $fi
 	if ( ! $form || 'adf_form' !== $form->post_type || 'private' !== $form->post_status ) {
 		return new WP_Error( 'adf_export_form', __( 'The form does not exist.', 'advanced-divi-forms' ) );
 	}
+	$filters = adf_parse_submission_filters( $filters );
+	if ( is_wp_error( $filters ) ) {
+		return $filters;
+	}
+	$required_status = 'trash' === $filters['adf_view'] ? 'trash' : 'private';
 	if ( count( $ids ) > 10000 ) {
 		return new WP_Error( 'adf_export_limit', __( 'Export at most 10,000 submissions at a time. Nothing has been truncated.', 'advanced-divi-forms' ) );
 	}
@@ -128,17 +133,19 @@ function adf_create_submission_export( $form_id, array $ids = array(), array $fi
 			return new WP_Error( 'adf_export_selection', __( 'The export selection is invalid.', 'advanced-divi-forms' ) );
 		}
 		$post = get_post( $id );
-		if ( ! $post || 'adf_submission' !== $post->post_type || 'private' !== $post->post_status || (int) $post->post_parent !== (int) $form_id ) {
+		if ( ! $post || 'adf_submission' !== $post->post_type || $post->post_status !== $required_status || (int) $post->post_parent !== (int) $form_id ) {
 			return new WP_Error( 'adf_export_selection', __( 'Every selected submission must belong to this form.', 'advanced-divi-forms' ) );
 		}
 		$selected[ (int) $id ] = (int) $id;
 	}
-	$filters = adf_parse_submission_filters( $filters );
-	if ( is_wp_error( $filters ) ) {
-		return $filters;
-	}
 	// Explicit selections are not narrowed by a stale list filter after an edit.
-	$args                   = adf_submission_query_args( $form_id, $selected ? array( 'adf_order' => $filters['adf_order'] ) : $filters );
+	$args                   = adf_submission_query_args(
+		$form_id,
+		$selected ? array(
+			'adf_order' => $filters['adf_order'],
+			'adf_view'  => $filters['adf_view'],
+		) : $filters
+	);
 	$args['posts_per_page'] = 10001; // phpcs:ignore WordPress.WP.PostsPerPage.posts_per_page_posts_per_page -- Detect overflow instead of truncating the export.
 	$args['fields']         = 'ids';
 	$args['no_found_rows']  = true;
@@ -254,7 +261,10 @@ function adf_export_submissions() {
 		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- The export API validates every ID and its form before querying.
 		$ids = wp_unslash( $_POST['submission_ids'] );
 	}
-	$query_filters = 'filtered' === $scope ? $filters : ( 'selected' === $scope ? array( 'adf_order' => $filters['adf_order'] ) : array() );
+	$query_filters = 'filtered' === $scope ? $filters : ( 'selected' === $scope ? array(
+		'adf_order' => $filters['adf_order'],
+		'adf_view'  => $filters['adf_view'],
+	) : array() );
 	$file          = adf_create_submission_export( $form_id, $ids, $query_filters );
 	if ( is_wp_error( $file ) ) {
 		wp_die(

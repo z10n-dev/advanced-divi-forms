@@ -43,6 +43,7 @@ function adf_submission_filter_args( array $filters ) {
 		'adf_from'   => '',
 		'adf_to'     => '',
 		'adf_order'  => 'newest',
+		'adf_view'   => 'active',
 	);
 	$args     = array();
 	foreach ( $defaults as $key => $default ) {
@@ -72,10 +73,42 @@ function adf_render_submission_filter_fields( array $filters ) {
  * @param array $filters Validated filters.
  * @return void
  */
+/**
+ * Show per-form active/trash totals; other filters affect only displayed matches.
+ *
+ * @param int   $form_id Registered form ID.
+ * @param array $filters Validated navigation filters.
+ * @return void
+ */
+function adf_render_submission_views( $form_id, array $filters ) {
+	echo '<nav class="adf-view-links" aria-label="' . esc_attr__( 'Submission views', 'advanced-divi-forms' ) . '">';
+	foreach ( array( 'active', 'trash' ) as $view ) {
+		$count = adf_submission_query( $form_id, 1, 1, array( 'adf_view' => $view ) )->found_posts;
+		$args  = array_merge(
+			adf_submission_filter_args( $filters ),
+			array(
+				'form_id'  => $form_id,
+				'adf_view' => $view,
+			)
+		);
+		$label = 'trash' === $view ? __( 'Trash (%d)', 'advanced-divi-forms' ) : __( 'Active (%d)', 'advanced-divi-forms' ); // phpcs:ignore WordPress.WP.I18n.MissingTranslatorsComment -- Total submissions in this form view.
+		echo '<a href="' . esc_url( adf_forms_url( $args ) ) . '"' . ( $view === $filters['adf_view'] ? ' aria-current="page"' : '' ) . '>' . esc_html( sprintf( $label, $count ) ) . '</a> ';
+	}
+	echo '</nav>';
+}
+
+/**
+ * Render read-only filters, retaining the explicitly chosen submission view.
+ *
+ * @param int   $form_id Registered form ID.
+ * @param array $filters Validated filters.
+ * @return void
+ */
 function adf_render_submission_filters( $form_id, array $filters ) {
 	?>
 	<form method="get" action="<?php echo esc_url( admin_url( 'admin.php' ) ); ?>" class="adf-filter-form">
 		<input type="hidden" name="page" value="advanced-divi-forms">
+		<input type="hidden" name="adf_view" value="<?php echo esc_attr( $filters['adf_view'] ); ?>">
 		<input type="hidden" name="form_id" value="<?php echo esc_attr( $form_id ); ?>">
 		<label class="adf-filter-field" for="adf-filter-search"><?php esc_html_e( 'Search submitted data', 'advanced-divi-forms' ); ?><input type="search" id="adf-filter-search" name="adf_search" maxlength="200" value="<?php echo esc_attr( $filters['adf_search'] ); ?>"></label>
 		<label class="adf-filter-field" for="adf-filter-status"><?php esc_html_e( 'Status', 'advanced-divi-forms' ); ?>

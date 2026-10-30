@@ -28,17 +28,18 @@ function adf_apply_submission_action( $form_id, array $ids, $action, array $opti
 	if ( ! $form || 'adf_form' !== $form->post_type || 'private' !== $form->post_status ) {
 		return new WP_Error( 'adf_invalid_form', __( 'The form does not exist.', 'advanced-divi-forms' ) );
 	}
-	if ( ! in_array( $action, array( 'mark_read', 'mark_unread', 'delete', 'quick_edit' ), true ) || ! $ids || count( $ids ) > 200 ) {
+	if ( ! in_array( $action, array( 'mark_read', 'mark_unread', 'delete', 'quick_edit', 'trash', 'restore' ), true ) || ! $ids || count( $ids ) > 200 ) {
 		return new WP_Error( 'adf_invalid_action', __( 'Choose an action and between 1 and 200 submissions.', 'advanced-divi-forms' ) );
 	}
-	$selected = array();
+	$selected        = array();
+	$required_status = in_array( $action, array( 'restore', 'delete' ), true ) ? 'trash' : 'private';
 	foreach ( $ids as $id ) {
 		if ( ( ! is_int( $id ) && ! is_string( $id ) ) || ! preg_match( '/^[1-9][0-9]*$/D', (string) $id ) || (string) (int) $id !== (string) $id ) {
 			return new WP_Error( 'adf_invalid_selection', __( 'The submission selection is invalid.', 'advanced-divi-forms' ) );
 		}
 		$submission = get_post( $id );
-		if ( ! $submission || 'adf_submission' !== $submission->post_type || 'private' !== $submission->post_status || (int) $submission->post_parent !== (int) $form_id ) {
-			return new WP_Error( 'adf_invalid_selection', __( 'Every selected submission must belong to this form.', 'advanced-divi-forms' ) );
+		if ( ! $submission || 'adf_submission' !== $submission->post_type || $submission->post_status !== $required_status || (int) $submission->post_parent !== (int) $form_id ) {
+			return new WP_Error( 'adf_invalid_selection', __( 'Every selected submission must belong to this form and be in the correct Active or Trash state for this action.', 'advanced-divi-forms' ) );
 		}
 		$selected[ $submission->ID ] = $submission;
 	}
@@ -49,8 +50,15 @@ function adf_apply_submission_action( $form_id, array $ids, $action, array $opti
 		return new WP_Error( 'adf_confirm_delete', __( 'Confirm permanent deletion before applying this action.', 'advanced-divi-forms' ) );
 	}
 	foreach ( $selected as $submission ) {
+		if ( in_array( $action, array( 'trash', 'restore' ), true ) ) {
+			$trashed = 'trash' === $action ? adf_trash_submission( $submission->ID ) : adf_restore_submission( $submission->ID );
+			if ( is_wp_error( $trashed ) ) {
+				return $trashed;
+			}
+			continue;
+		}
 		if ( 'delete' === $action ) {
-			if ( ! wp_delete_post( $submission->ID, true ) ) {
+			if ( ! wp_delete_post( $submission->ID, true ) || null !== get_post( $submission->ID ) ) {
 				return new WP_Error( 'adf_delete_failed', __( 'A submission could not be deleted. Some selected records may already have been processed; reload the list before retrying.', 'advanced-divi-forms' ) );
 			}
 			continue;

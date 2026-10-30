@@ -53,6 +53,7 @@ try {
 	wp_set_current_user( 0 );
 	adf_actions_expect( is_wp_error( adf_apply_submission_action( $form, array( $first ), 'mark_read' ) ), 'Anonymous callers must not manage submissions.' );
 	wp_set_current_user( $admins[0]->ID );
+	adf_actions_expect( 2 === adf_apply_submission_action( $form, array( $first, $second ), 'trash' ) && 'trash' === get_post_status( $first ) && 'private' === get_post_status( $foreign ), 'Bulk trash must preserve selected answers without touching another form.' );
 	adf_actions_expect( is_wp_error( adf_apply_submission_action( $form, array( $first ), 'delete' ) ) && get_post( $first ), 'Bulk deletion must require explicit confirmation.' );
 	adf_actions_expect( 2 === adf_apply_submission_action( $form, array( $first, $first, $second ), 'delete', array( 'confirm_delete' => '1' ) ) && ! get_post( $first ) && ! get_post( $second ) && get_post( $foreign ), 'Confirmed deletion must remove each selected record once without touching another form.' );
 	WP_CLI::success( 'Submission-management tests passed.' );

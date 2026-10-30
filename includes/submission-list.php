@@ -34,6 +34,9 @@ function adf_enqueue_submission_assets( $hook ) {
  * @return void
  */
 function adf_render_submission_quick_edit( $submission, $page = 1, array $filters = array() ) {
+	if ( 'private' !== $submission->post_status ) {
+		return;
+	}
 	$read = get_post_meta( $submission->ID, '_adf_read', true ) ? '1' : '0';
 	$note = adf_field_text( get_post_meta( $submission->ID, '_adf_note', true ) );
 	?>
@@ -77,6 +80,7 @@ function adf_render_submission_quick_edit( $submission, $page = 1, array $filter
 function adf_render_submission_list( $form ) {
 	adf_require_admin();
 	$filters   = adf_current_submission_filters();
+	$in_trash  = 'trash' === $filters['adf_view'];
 	$page      = max( 1, adf_admin_query_id( 'adf_paged' ) );
 	$query     = adf_submission_query( $form->ID, $page, 20, $filters );
 	$last_page = max( 1, (int) $query->max_num_pages );
@@ -89,6 +93,7 @@ function adf_render_submission_list( $form ) {
 		<h1><?php echo esc_html( $form->post_title ); ?></h1>
 		<p><a href="<?php echo esc_url( adf_forms_url() ); ?>">&larr; <?php esc_html_e( 'All Forms', 'advanced-divi-forms' ); ?></a></p>
 		<h2><?php esc_html_e( 'Submissions', 'advanced-divi-forms' ); ?></h2>
+		<?php adf_render_submission_views( $form->ID, $filters ); ?>
 		<?php adf_render_submission_filters( $form->ID, $filters ); ?>
 		<p class="adf-result-count"><?php echo esc_html( sprintf( __( '%d matching submissions', 'advanced-divi-forms' ), $query->found_posts ) ); // phpcs:ignore WordPress.WP.I18n.MissingTranslatorsComment -- Number of submissions matching the current filters. ?></p>
 		<?php if ( adf_admin_query_id( 'adf_updated' ) ) : ?>
@@ -100,8 +105,11 @@ function adf_render_submission_list( $form ) {
 			<input type="hidden" name="form_id" value="<?php echo esc_attr( $form->ID ); ?>">
 			<?php wp_nonce_field( 'adf_export_submissions_' . $form->ID, '_wpnonce', false ); ?>
 			<?php adf_render_submission_filter_fields( $filters ); ?>
-			<button type="submit" class="button" name="scope" value="filtered"><?php esc_html_e( 'Export filtered to Excel', 'advanced-divi-forms' ); ?></button>
-			<button type="submit" class="button" name="scope" value="all"><?php esc_html_e( 'Export all to Excel', 'advanced-divi-forms' ); ?></button>
+			<button type="submit" class="button" name="scope" value="filtered"><?php echo $in_trash ? esc_html__( 'Export filtered Trash to Excel', 'advanced-divi-forms' ) : esc_html__( 'Export filtered to Excel', 'advanced-divi-forms' ); ?></button>
+			<?php
+			if ( ! $in_trash ) :
+				?>
+				<button type="submit" class="button" name="scope" value="all"><?php esc_html_e( 'Export all to Excel', 'advanced-divi-forms' ); ?></button><?php endif; ?>
 			<span class="description"><?php esc_html_e( 'XLSX · up to 10,000 submissions per export. Includes internal notes; handle downloads as private data.', 'advanced-divi-forms' ); ?></span>
 		</form>
 		<form id="adf-bulk-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
@@ -114,15 +122,22 @@ function adf_render_submission_list( $form ) {
 				<label class="screen-reader-text" for="adf-bulk-operation"><?php esc_html_e( 'Bulk actions', 'advanced-divi-forms' ); ?></label>
 				<select name="operation" id="adf-bulk-operation" required>
 					<option value=""><?php esc_html_e( 'Bulk actions', 'advanced-divi-forms' ); ?></option>
-					<option value="mark_read"><?php esc_html_e( 'Mark as read', 'advanced-divi-forms' ); ?></option>
-					<option value="mark_unread"><?php esc_html_e( 'Mark as unread', 'advanced-divi-forms' ); ?></option>
+					<?php if ( $in_trash ) : ?>
+						<option value="restore"><?php esc_html_e( 'Restore selected', 'advanced-divi-forms' ); ?></option>
+						<option value="delete"><?php esc_html_e( 'Delete permanently', 'advanced-divi-forms' ); ?></option>
+					<?php else : ?>
+						<option value="mark_read"><?php esc_html_e( 'Mark as read', 'advanced-divi-forms' ); ?></option>
+						<option value="mark_unread"><?php esc_html_e( 'Mark as unread', 'advanced-divi-forms' ); ?></option>
+						<option value="trash"><?php esc_html_e( 'Move to Trash', 'advanced-divi-forms' ); ?></option>
+					<?php endif; ?>
 					<option value="export"><?php esc_html_e( 'Export selected to Excel', 'advanced-divi-forms' ); ?></option>
-					<option value="delete"><?php esc_html_e( 'Delete permanently', 'advanced-divi-forms' ); ?></option>
 				</select>
 				<?php submit_button( __( 'Apply', 'advanced-divi-forms' ), 'secondary', 'apply', false ); ?>
 				<span data-adf-selection-count data-template="<?php echo esc_attr__( '%d selected', 'advanced-divi-forms' ); // phpcs:ignore WordPress.WP.I18n.MissingTranslatorsComment -- Number of selected submissions. ?>" aria-live="polite"></span>
 			</div>
+			<?php if ( $in_trash ) : ?>
 			<p class="adf-delete-confirm"><label><input type="checkbox" name="confirm_delete" value="1"><span><?php esc_html_e( 'I confirm permanent deletion of the selected submissions. This cannot be undone.', 'advanced-divi-forms' ); ?></span></label></p>
+			<?php endif; ?>
 		</form>
 		<div class="adf-table-scroll">
 		<table class="widefat striped">

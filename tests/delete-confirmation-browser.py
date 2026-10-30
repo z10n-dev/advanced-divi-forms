@@ -33,9 +33,9 @@ with sync_playwright() as p:
     page = context.new_page()
     results = []
     for kind in ['bulk', 'single']:
-        url = base + '&form_id=' + str(fixture['form'])
+        url = base + '&form_id=' + str(fixture['form']) + '&adf_view=trash'
         if kind == 'single':
-            url += '&submission_id=' + str(fixture['ids'][-1])
+            url += '&submission_id=' + str(fixture['trash_ids'][-1])
         page.goto(url, wait_until='networkidle')
         if kind == 'bulk':
             page.locator('#adf-bulk-operation').select_option('delete')

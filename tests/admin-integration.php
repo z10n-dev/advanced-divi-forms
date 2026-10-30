@@ -161,11 +161,14 @@ try {
 		adf_integration_expect( str_contains( $redirect->getMessage(), 'form_id=' . $form_id ), 'Submission actions must return to the form.' );
 	}
 	adf_integration_expect( '1' === get_post_meta( $answer, '_adf_read', true ), 'A valid POST must mark the answer as read.' );
+	$_POST = array( 'submission_id' => $answer, 'adf_trash' => '1' );
+	try { adf_update_submission(); } catch ( ADF_Test_Redirect $redirect ) {}
+	adf_integration_expect( 'trash' === get_post_status( $answer ), 'The normal detail action must use recoverable Trash.' );
 	$_POST = array( 'submission_id' => $answer, 'adf_delete' => '1' );
 	try {
 		adf_update_submission();
-	} catch ( ADF_Test_Redirect $redirect ) {
-		// A delete request without confirmation must not delete data.
+	} catch ( ADF_Test_Denied $error ) {
+		adf_integration_expect( str_contains( $error->getMessage(), 'Confirm permanent deletion' ), 'Missing permanent-delete confirmation must return a clear error.' );
 	}
 	adf_integration_expect( null !== get_post( $answer ), 'Deletion requires explicit confirmation.' );
 	$_POST['adf_confirm_delete'] = '1';

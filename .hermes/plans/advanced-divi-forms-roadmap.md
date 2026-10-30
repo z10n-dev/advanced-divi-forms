@@ -46,15 +46,36 @@ SHA256 `144f94d8a3edf2dd154f1f6a9124651591751468c660f2d920cdb683ab6f3167`.
 Keine Veröffentlichung.
 
 ### 2. Suche, Status-/Datumsfilter und konsistenter Excel-Export
-- [ ] Suche nach Name, E-Mail oder Formularinhalt; Filter gelesen/ungelesen sowie
+- [x] Suche nach Name, E-Mail oder Formularinhalt; Filter gelesen/ungelesen sowie
       Zeitraum, klare Sortierung und stabile Pagination.
-- [ ] Filter bleiben beim Blättern, Quick Edit und Rückkehr zur Liste erhalten.
-- [ ] Export unterscheidet explizit ausgewählte Zeilen, alle gefilterten Treffer und
+- [x] Filter bleiben beim Blättern, Quick Edit und Rückkehr zur Liste erhalten.
+- [x] Export unterscheidet explizit ausgewählte Zeilen, alle gefilterten Treffer und
       alle Antworten des Formulars; keine stillschweigende Ausweitung der Auswahl.
-- [ ] Leere Treffer, ungültige Datumsbereiche, SQL-Sicherheit und Zugriff über
+- [x] Leere Treffer, ungültige Datumsbereiche, SQL-Sicherheit und Zugriff über
       Formulargrenzen sind getestet; bestehende Export-Sicherheitslimits bleiben.
 Dateien: `includes/admin-menu.php`, `includes/submission-list.php`,
 `includes/submission-actions.php`, `includes/submission-export.php`, Tests/README.
+
+Beleg Iteration 2: Commit `4c924b087164cea3273576daf8686e59b0b6e34d` (0.7.0).
+TDD rot/grün für Suche, Legacy-Ungelesen/Gelesen, Datumsgrenzen/-validierung,
+stabile Sortierung, Listen-/Detail-/Quick-Edit-Kontext und gefilterten Export.
+Browser zuerst rot bei leerer selected-Auswahl (HTTP 200 statt 400), leerer letzter
+Seite und Label-Abständen; nach Implementierung alle Prüfungen grün.
+`python3 .../adf-test/verify-adf.py --browser`: alle zehn WP-Suiten aus dem
+Smoke-Skript, PHP-Syntax, PHPCS, Version, Updater, Divi-/Submission-JS und Diff grün.
+Vier Chromium-Suiten gegen installierten ZIP: openpyxl bestätigt exakt 25 gefilterte,
+30 gesamte und 2 ausgewählte Datensätze; Formulargrenzen und ungültige/mehrdeutige
+Exports HTTP 400, Navigation/Quick Edit/Detail und drei Viewports geprüft.
+Unabhängiges Review neuer Filtermodule (`deleg_52e34b9c`) enthielt widersprüchliche
+Schweregrade, aber keinen reproduzierbaren Angriff. Ergänzendes Controller-Review
+`deleg_2fecd61e` prüfte den tatsächlichen Working-Diff und fand keine Befunde;
+Tool-Transkripte gegengelesen. Belegdatei: Scratch `adf-test/filter-verification.txt`.
+15 ZIP-Dateien bytegenau gleich Source und Installation. SHA256
+`f47c9757eb17e9c7fa804ab17a8e234c15d4986f87817aa2814333480e59fa94`.
+Testumgebung jetzt SQLite AST: alter Legacy-Treiber überschreibt `esc_like()` als
+No-op und verfälscht Literal-%/_-Tests. Aktivierung des vorhandenen AST-Treibers nur
+in eigener Wegwerfinstallation korrigiert dies; kein Produktions-Workaround im
+Plugin. Weiterhin kein MySQL-/lizenzierter Divi-/Live-SMTP-Nachweis, kein Release.
 
 ### 3. Wiederherstellbarer Papierkorb
 - [ ] Normales Löschen in Liste, Detail und Mehrfachaktion verschiebt in Papierkorb.
@@ -66,6 +87,42 @@ Dateien: `includes/admin-menu.php`, `includes/submission-list.php`,
 - [ ] WordPress-Core-Autobereinigung darf die vereinbarte explizite Löschgrenze nicht
       unbemerkt umgehen; Verhalten dokumentieren und testen.
 Dateien: Submission-Controller/Abfragen/UI/Export und neue Tests, keine Live-Daten.
+
+Zwischenstand Iteration 3 (noch NICHT abgehakt/committed):
+- Neue `includes/submission-trash.php` und `tests/submission-trash.php`.
+  `trash`/`restore` erhalten Felder, Notiz, Lesestatus und Formularbezug;
+  Restore erzwingt private statt WordPress-Default draft.
+- Normales Verschieben bleibt auch bei `EMPTY_TRASH_DAYS=0` wiederherstellbar.
+  `pre_delete_post` blockiert automatische Core-Löschung eigener Trash-Antworten,
+  lässt andere CPTs und explizites force=true aus bestätigten Server-Aktionen in Ruhe.
+- Permanente Aktion verlangt Trash-Status und Bestätigung; direkte Detailaktionen
+  sind POST/Nonce-geschützt, exakt eine Aktion, zentrale Status-/Formularvalidierung.
+- Neue validierte `adf_view=active|trash`, getrennte Listen/Detail-/Restore-/Delete-
+  Controls, formularbezogene Totals; normale Exporte ohne Trash, explizite Trash-
+  Exporte möglich. Alter Quick Edit erscheint nicht im Trash.
+- TDD jeweils rot/grün: Kernfunktionen, Core-Autobereinigung, Status-/Bestätigungs-
+  Grenze, View/Export, Controller und Detail-Routing. Reales Chromium:
+  `tests/submission-trash-browser.py` bestätigt Einzel-Trash/Restore, ID/Datum/Zähler.
+- Zuletzt grün: PHPCS, `git diff --check`, `tests/submission-controller.php`,
+  `tests/submission-trash.php` normal UND mit
+  `wp --exec='define("EMPTY_TRASH_DAYS",0);' eval-file tests/submission-trash.php`.
+- Inzwischen vollständig grün gegen installierten 0.8.0-ZIP:
+  `python3 .../adf-test/verify-adf.py --browser`: ELF WP-Suiten plus Extra-Lauf
+  mit EMPTY_TRASH_DAYS=0, PHP-Syntax, PHPCS, Version, Updater, Divi-/Submission-JS,
+  Diff und FÜNF Chromium-Suiten mit openpyxl, Single/Bulk-Restore/Permanent Delete,
+  Trash-Export, Standardexport-Ausschluss und 1280/768/390px. Checkbox-Fix erhalten.
+- Early-load-Routenschutz behebt echtes HTTP200-FehlerHTML nach Adminheader;
+  fehlende/gelöschte Antworten liefern jetzt tatsächlich HTTP404. Wiederherstellen
+  und permanente Löschbestätigung sind auch mobil mit gemessenem Abstand getrennt.
+- `dist/advanced-divi-forms.zip`: 0.8.0, 16 Dateien bytegenau Source/Installation,
+  KEIN Symlink. SHA256
+  `e565c7a8bdd3d58401851d99f5115d9d31997d6c276a78e732278a7b4960ee37`.
+  Ausgabe: Scratch `adf-test/trash-verification.txt`. Eigene Fixtures bereinigt,
+  Site wieder wordpress.test, SQLite AST; kein MySQL-Nachweis und kein Release.
+- OFFEN: Unabhängiges Review `deleg_66aff518` übernehmen/verifizieren, Commit und
+  finale Abhakung. Implementierung/Regressionen/ZIP sind geprüft, noch uncommitted.
+- Read-only-Vorbereitung für Iteration4: `deleg_021f962b` (Ergebnis noch nicht
+  übernommen). Keine Veröffentlichung, keine Produktivdaten berührt.
 
 ### 4. Template-Vorschau und Platzhalterhilfe
 - [ ] Vorschau mit frei eingegebenen Testdaten, ohne irgendeine Mail zu versenden.

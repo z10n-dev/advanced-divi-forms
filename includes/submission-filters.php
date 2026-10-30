@@ -22,6 +22,7 @@ function adf_parse_submission_filters( array $input ) {
 		'adf_from'   => '',
 		'adf_to'     => '',
 		'adf_order'  => 'newest',
+		'adf_view'   => 'active',
 	);
 	foreach ( $filters as $key => $default ) {
 		if ( array_key_exists( $key, $input ) ) {
@@ -30,6 +31,9 @@ function adf_parse_submission_filters( array $input ) {
 			}
 			$filters[ $key ] = $input[ $key ];
 		}
+	}
+	if ( ! in_array( $filters['adf_view'], array( 'active', 'trash' ), true ) ) {
+		return new WP_Error( 'adf_invalid_view', __( 'Choose the Active or Trash submission view.', 'advanced-divi-forms' ) );
 	}
 	$filters['adf_search'] = trim( sanitize_text_field( $filters['adf_search'] ) );
 	if ( ! preg_match( '/^.{0,200}$/usD', $filters['adf_search'] ) || ! in_array( $filters['adf_status'], array( 'all', 'read', 'unread' ), true ) || ! in_array( $filters['adf_order'], array( 'newest', 'oldest' ), true ) ) {
@@ -95,7 +99,7 @@ function adf_submission_query_args( $form_id, array $input = array() ) {
 	}
 	$args  = array(
 		'post_type'   => 'adf_submission',
-		'post_status' => 'private',
+		'post_status' => 'trash' === $filters['adf_view'] ? 'trash' : 'private',
 		'post_parent' => absint( $form_id ),
 		'orderby'     => array(
 			'date' => 'oldest' === $filters['adf_order'] ? 'ASC' : 'DESC',

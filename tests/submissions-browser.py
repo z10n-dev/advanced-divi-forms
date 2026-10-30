@@ -98,16 +98,13 @@ with sync_playwright() as p:
         page.get_by_role('button', name='Apply', exact=True).click()
     assert len(list(read_download(pending.value).values)) == 3
     print('PASS: selected Excel download includes exactly the two selected records')
-    page.locator('#adf-bulk-operation').select_option('delete')
+    page.locator('#adf-bulk-operation').select_option('trash')
     page.get_by_role('button', name='Apply', exact=True).click()
-    expect(page.locator('[data-adf-submission]')).to_have_count(20)
-    assert not page.locator('[name="confirm_delete"]').evaluate('e => e.validity.valid')
-    page.locator('[name="confirm_delete"]').check()
-    page.get_by_role('button', name='Apply', exact=True).click()
+    expect(page.get_by_role('link', name=f"Trash ({len(fixture.get('trash_ids', [])) + 2})", exact=True)).to_be_visible()
     expect(page.locator('.notice-success')).to_be_visible()
     expect(page.locator(f'[data-adf-submission="{first_id}"]')).to_have_count(0)
     with page.expect_download() as pending:
         page.get_by_role('button', name='Export all to Excel').click()
     assert len(list(read_download(pending.value).values)) == 22
-    print('PASS: delete is blocked without confirmation, then removes only selected records')
+    print('PASS: recoverable trash excludes only selected records from the active list and standard export')
     browser.close()

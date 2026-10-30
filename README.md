@@ -156,10 +156,15 @@ Open **Forms → All Forms → a form** to manage its stored answers:
   The note is private to administrators, but **is included in Excel downloads**.
 - Check individual rows or **Select all submissions on this page**, then choose
   **Mark as read**, **Mark as unread**, **Export selected to Excel**, or
-  **Delete permanently**. Selection applies to the current page, not hidden pages.
-  Permanent deletion additionally requires the explicit confirmation checkbox.
-- **Export all to Excel** exports every page of the current form, not just the
-  visible answers. The download is a real `.xlsx` workbook with a frozen header
+  **Move to Trash**. Selection applies to the current page, not hidden pages.
+  **Active** and **Trash** are separate views with totals for the current form.
+  Trash offers individual/bulk **Restore** and a separate **Delete permanently**
+  operation that requires the explicit confirmation checkbox. Original values,
+  received date, form identity, read status and notes survive Trash/Restore.
+  Restored answers always return to private storage, never drafts/public posts.
+- **Export all to Excel** exports every active page of the current form, excluding
+  Trash. Explicit filtered/selected exports in the Trash view include only that
+  chosen Trash scope. The normal active view never silently includes trashed data. The download is a real `.xlsx` workbook with a frozen header
   and auto-filter: submission ID, received date/time (site timezone), status,
   internal note, then one column per field ID. Field columns are the union across
   the exported answers; missing values are blank. Values including leading zeros,
@@ -182,6 +187,16 @@ administrator capability and a valid form-scoped nonce.
 Inline editing and individual row selection work without JavaScript. JavaScript
 adds select-all, selection counts, Cancel/reset and conditional delete-confirmation
 controls. The wide table scrolls within the page on narrow screens.
+
+### Recoverable Trash and native WordPress cleanup
+
+Normal removal is recoverable, including when WordPress defines
+`EMPTY_TRASH_DAYS=0`. Advanced Divi Forms does not silently adopt the site's
+normal automatic empty-trash deadline: its trashed answers remain until an
+explicit, authorized permanent deletion. WordPress's scheduled cleanup continues
+normally for other post types. This protection covers Core's automatic cleanup;
+trusted server-side code deliberately calling `wp_delete_post` with `force=true`
+can still delete records. Plugin deactivation does not remove data.
 
 ## Setup
 
