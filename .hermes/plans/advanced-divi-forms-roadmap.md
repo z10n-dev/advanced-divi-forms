@@ -222,7 +222,7 @@ Beleg Iteration 5 (0.10.0), Arbeitsbaum verifiziert, Review/Commit ausstehend:
 Dateien: neue Privacy/Retention/Capabilities-Module, bestehende Zugriffskontrollen,
 Bootstrap/ggf. Upgrade-Hooks, Tests und Dokumentation.
 
-Beleg Iteration 6 (0.11.0), Verifikation abgeschlossen, Review/Commit ausstehend:
+Beleg Iteration 6 (0.11.0), Commit `76e227926abf0359623d9cc244119bf0a13f0159`:
 - `includes/submission-privacy.php`: `adf_retention_days()`/`adf_retention_enabled()`
   (0 = AUS, Standard), `adf_save_retention_settings()` nur `manage_options` und nur
   1–3650 Tage, `adf_sync_retention_schedule()`/Deaktivierungshook, tagesweiser
@@ -315,6 +315,26 @@ Migration erforderlich wird. Nicht beliebig weiterprobieren oder Ergebnisse
 simulieren. Sonst lokal weiterarbeiten. Benutzer-Steuerung hat immer Vorrang.
 
 ## Abschluss
+
+Stand 2026-10-30: alle sechs Iterationen implementiert, unabhängig geprüft und
+lokal committet; Arbeitsbaum sauber, nichts veröffentlicht.
+
+| Iteration | Commit | Version |
+|---|---|---|
+| 1 Updater | `dd66b3714abb9de0a2d6def22da65371fb571ccf` | 0.6.0 |
+| 2 Filter/Export | `4c924b087164cea3273576daf8686e59b0b6e34d` | 0.7.0 |
+| 3 Papierkorb | `a603f92373849afc1f26371c1c1b3a7ec7b9000e` | 0.8.0 |
+| 4 Vorschau | `2b6a2c738c14aa7776d6bbac9f675d35f9c8178d` | 0.9.0 |
+| 5 Feldbeschriftungen | `1827643be4de94722fb541457376ff4608ab0114` | 0.10.0 |
+| 6 Datenschutz/Rechte | `76e227926abf0359623d9cc244119bf0a13f0159` | 0.11.0 |
+
+Letzter Gesamtlauf gegen den installierten 0.11.0-ZIP: 16 WordPress-Suiten,
+acht Chromium-Suiten, openpyxl, PHPCS/Version/Updater/Divi-JS, 22 Dateien
+bytegleich Source/ZIP/Installation, SHA256
+`0c00a2909db55bedde32b2cc0ca748f2007e56fbfdaabd06872c2e1be126b1f9`.
+Ausstehend und ausdrücklich nicht behauptet: MySQL-Lauf (CI), lizenzierte
+Divi-Live-Integration und echter SMTP-Versand; Veröffentlichung nur auf Auftrag.
+
 
 Fertig erst, wenn alle sechs Bereiche implementiert, integriert, getestet,
 reviewt, dokumentiert und als installierbares ZIP geliefert sind. Verbleibende
