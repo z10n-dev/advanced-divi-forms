@@ -64,6 +64,7 @@ wp_test eval-file "$(dirname "$(realpath "$0")")/../tests/github-update-integrat
 wp_test eval-file "$(dirname "$(realpath "$0")")/../tests/submission-actions.php"
 wp_test eval-file "$(dirname "$(realpath "$0")")/../tests/submission-controller.php"
 wp_test eval-file "$(dirname "$(realpath "$0")")/../tests/submission-page.php"
+wp_test eval-file "$(dirname "$(realpath "$0")")/../tests/submission-filters.php"
 wp_test eval-file "$(dirname "$(realpath "$0")")/../tests/submission-export.php"
 wp_test eval-file "$(dirname "$(realpath "$0")")/../tests/divi-integration.php"
 wp_test eval-file "$(dirname "$(realpath "$0")")/../tests/divi-discovery.php"

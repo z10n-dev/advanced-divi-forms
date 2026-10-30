@@ -76,25 +76,20 @@ function adf_forms_url( array $args = array() ) {
 /**
  * Query a single form's submissions, newest first.
  *
- * @param int $form_id  Registered form ID.
- * @param int $page     Page number.
- * @param int $per_page Number of results.
- * @return WP_Query
+ * @param int   $form_id  Registered form ID.
+ * @param int   $page     Page number.
+ * @param int   $per_page Number of results.
+ * @param array $filters  Optional validated submission filters.
+ * @return WP_Query|WP_Error
  */
-function adf_submission_query( $form_id, $page = 1, $per_page = 20 ) {
-	return new WP_Query(
-		array(
-			'post_type'      => 'adf_submission',
-			'post_status'    => 'private',
-			'post_parent'    => absint( $form_id ),
-			'posts_per_page' => $per_page,
-			'paged'          => max( 1, $page ),
-			'orderby'        => array(
-				'date' => 'DESC',
-				'ID'   => 'DESC',
-			),
-		)
-	);
+function adf_submission_query( $form_id, $page = 1, $per_page = 20, array $filters = array() ) {
+	$args = adf_submission_query_args( $form_id, $filters );
+	if ( is_wp_error( $args ) ) {
+		return $args;
+	}
+	$args['posts_per_page'] = $per_page;
+	$args['paged']          = max( 1, $page );
+	return new WP_Query( $args );
 }
 
 /**
@@ -109,7 +104,7 @@ function adf_render_pagination( $query, array $args = array() ) {
 		array(
 			'base'    => add_query_arg( 'adf_paged', '%#%', adf_forms_url( $args ) ),
 			'format'  => '',
-			'current' => max( 1, adf_admin_query_id( 'adf_paged' ) ),
+			'current' => max( 1, isset( $args['adf_paged'] ) ? (int) $args['adf_paged'] : adf_admin_query_id( 'adf_paged' ) ),
 			'total'   => $query->max_num_pages,
 		)
 	);
@@ -293,11 +288,22 @@ function adf_render_submissions( $form ) {
  */
 function adf_render_submission( $form, $submission ) {
 	adf_require_admin();
-	$fields = (array) get_post_meta( $submission->ID, '_adf_fields', true );
+	$filters  = adf_current_submission_filters();
+	$page     = max( 1, adf_admin_query_id( 'adf_paged' ) );
+	$fields   = (array) get_post_meta( $submission->ID, '_adf_fields', true );
+	$back_url = adf_forms_url(
+		array_merge(
+			adf_submission_filter_args( $filters ),
+			array(
+				'form_id'   => $form->ID,
+				'adf_paged' => $page,
+			)
+		)
+	);
 	?>
 	<div class="wrap adf-submission-detail">
 		<h1><?php echo esc_html( $form->post_title ); ?> — <?php esc_html_e( 'Submission', 'advanced-divi-forms' ); ?></h1>
-		<p><a href="<?php echo esc_url( adf_forms_url( array( 'form_id' => $form->ID ) ) ); ?>">&larr; <?php esc_html_e( 'Back to submissions', 'advanced-divi-forms' ); ?></a></p>
+		<p><a href="<?php echo esc_url( $back_url ); ?>">&larr; <?php esc_html_e( 'Back to submissions', 'advanced-divi-forms' ); ?></a></p>
 		<p><?php echo esc_html( get_the_date( 'Y-m-d H:i', $submission ) ); ?></p>
 		<table class="widefat striped">
 			<thead><tr><th scope="col"><?php esc_html_e( 'Field ID', 'advanced-divi-forms' ); ?></th><th scope="col"><?php esc_html_e( 'Value', 'advanced-divi-forms' ); ?></th></tr></thead>
@@ -310,6 +316,8 @@ function adf_render_submission( $form, $submission ) {
 		<form class="adf-submission-actions" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 			<input type="hidden" name="action" value="adf_update_submission">
 			<input type="hidden" name="submission_id" value="<?php echo esc_attr( $submission->ID ); ?>">
+			<input type="hidden" name="return_page" value="<?php echo esc_attr( $page ); ?>">
+			<?php adf_render_submission_filter_fields( $filters ); ?>
 			<?php wp_nonce_field( 'adf_submission_' . $submission->ID ); ?>
 			<?php if ( ! get_post_meta( $submission->ID, '_adf_read', true ) ) : ?>
 				<div class="adf-single-status-action"><?php submit_button( __( 'Mark as read', 'advanced-divi-forms' ), 'secondary', 'adf_mark_read', false ); ?></div>
@@ -328,9 +336,17 @@ function adf_render_submission( $form, $submission ) {
  */
 function adf_update_submission() {
 	adf_require_admin();
+	if ( ! isset( $_SERVER['REQUEST_METHOD'] ) || 'post' !== sanitize_key( wp_unslash( $_SERVER['REQUEST_METHOD'] ) ) ) {
+		wp_die( esc_html__( 'Use a POST request for submission actions.', 'advanced-divi-forms' ), '', array( 'response' => 405 ) );
+	}
 	// phpcs:ignore WordPress.Security.NonceVerification.Missing -- ID is needed to verify the item-specific nonce below.
 	$id = isset( $_POST['submission_id'] ) && is_scalar( $_POST['submission_id'] ) ? absint( $_POST['submission_id'] ) : 0;
 	check_admin_referer( 'adf_submission_' . $id );
+	// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Known filter values are validated by the parser.
+	$filters = adf_parse_submission_filters( wp_unslash( $_POST ) );
+	if ( is_wp_error( $filters ) ) {
+		wp_die( esc_html( $filters->get_error_message() ), '', array( 'response' => 400 ) );
+	}
 	$submission = get_post( $id );
 	if ( ! $submission || 'adf_submission' !== $submission->post_type || 'private' !== $submission->post_status ) {
 		wp_die( esc_html__( 'The submission does not exist.', 'advanced-divi-forms' ), '', array( 'response' => 404 ) );
@@ -341,6 +357,17 @@ function adf_update_submission() {
 	} elseif ( isset( $_POST['adf_delete'], $_POST['adf_confirm_delete'] ) && '1' === $_POST['adf_confirm_delete'] ) {
 		wp_delete_post( $id, true );
 	}
-	wp_safe_redirect( adf_forms_url( array( 'form_id' => $form_id ) ) );
+	$page = isset( $_POST['return_page'] ) && is_scalar( $_POST['return_page'] ) ? max( 1, absint( $_POST['return_page'] ) ) : 1;
+	wp_safe_redirect(
+		adf_forms_url(
+			array_merge(
+				adf_submission_filter_args( $filters ),
+				array(
+					'form_id'   => $form_id,
+					'adf_paged' => $page,
+				)
+			)
+		)
+	);
 	exit;
 }

@@ -84,6 +84,11 @@ function adf_manage_submissions() {
 	// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Strict numeric validation; ID scopes the nonce immediately below.
 	$form_id = isset( $_POST['form_id'] ) && is_string( $_POST['form_id'] ) && preg_match( '/^[1-9][0-9]*$/D', wp_unslash( $_POST['form_id'] ) ) ? (int) $_POST['form_id'] : 0;
 	check_admin_referer( 'adf_manage_submissions_' . $form_id );
+	// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- The parser validates all known filter values.
+	$filters = adf_parse_submission_filters( wp_unslash( $_POST ) );
+	if ( is_wp_error( $filters ) ) {
+		wp_die( esc_html( $filters->get_error_message() ), '', array( 'response' => 400 ) );
+	}
 	// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Every ID is strictly validated before any mutation/export; never coerce malformed IDs.
 	$ids       = isset( $_POST['submission_ids'] ) && is_array( $_POST['submission_ids'] ) ? wp_unslash( $_POST['submission_ids'] ) : array();
 	$operation = isset( $_POST['operation'] ) && is_string( $_POST['operation'] ) ? sanitize_key( wp_unslash( $_POST['operation'] ) ) : '';
@@ -98,7 +103,7 @@ function adf_manage_submissions() {
 	}
 	if ( 'export' === $operation ) {
 		// Validate the selection without mutating records or falling back to all.
-		$result = $ids ? adf_create_submission_export( $form_id, $ids ) : new WP_Error( 'adf_empty_selection', __( 'Select at least one submission to export.', 'advanced-divi-forms' ) );
+		$result = $ids ? adf_create_submission_export( $form_id, $ids, $filters ) : new WP_Error( 'adf_empty_selection', __( 'Select at least one submission to export.', 'advanced-divi-forms' ) );
 		if ( ! is_wp_error( $result ) ) {
 			adf_send_submission_export( $result, $form_id );
 			return;
@@ -119,10 +124,13 @@ function adf_manage_submissions() {
 	$page = isset( $_POST['return_page'] ) && is_scalar( $_POST['return_page'] ) ? max( 1, absint( $_POST['return_page'] ) ) : 1;
 	wp_safe_redirect(
 		adf_forms_url(
-			array(
-				'form_id'     => $form_id,
-				'adf_paged'   => $page,
-				'adf_updated' => $result,
+			array_merge(
+				adf_submission_filter_args( $filters ),
+				array(
+					'form_id'     => $form_id,
+					'adf_paged'   => $page,
+					'adf_updated' => $result,
+				)
 			)
 		)
 	);

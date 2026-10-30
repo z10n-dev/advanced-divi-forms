@@ -135,6 +135,21 @@ Repository (create this first): https://github.com/z10n-dev/advanced-divi-forms
 
 Open **Forms → All Forms → a form** to manage its stored answers:
 
+- Search a submitted name, email address or distinctive text (up to 200 characters).
+  Search is a literal substring over stored field data, including field IDs;
+  `%` and `_` are not query wildcards. Combine it with **Unread/Read**, inclusive
+  **From date/To date** in the site's timezone and **Newest first/Oldest first**.
+  Dates are validated; an invalid calendar day or reversed interval is rejected.
+  Sorting uses the submission ID as a stable tie-breaker for equal timestamps.
+- Applying filters resets to page 1. Pagination, Quick Edit, detail/back navigation
+  and status actions retain all filters. If an action empties the final page,
+  the list falls back to the last remaining matching page.
+- **Export filtered to Excel** exports every matching answer across all pages.
+  **Export all to Excel** explicitly ignores search/status/date filters and exports
+  this form's answers. **Export selected to Excel** exports exactly the selected
+  IDs (never falls back to all and is not narrowed by stale status filters).
+  An empty filtered result produces headers only. Ambiguous scopes are rejected.
+
 - **Quick Edit** expands directly in the answer row and lets administrators change
   the read/unread status and an internal, plain-text note (up to 5,000 characters).
   Original submitted field values are never edited. Cancel discards unsaved edits.

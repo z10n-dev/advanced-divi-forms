@@ -108,9 +108,10 @@ function adf_package_submission_xlsx( $sheet, $use_native = true ) {
  *
  * @param int   $form_id Form ID.
  * @param array $ids     Empty means all. Controllers must reject empty selections.
+ * @param array $filters Filters for all/filtered exports; selections retain only sorting.
  * @return string|WP_Error Private XLSX temporary path or a controlled error.
  */
-function adf_create_submission_export( $form_id, array $ids = array() ) {
+function adf_create_submission_export( $form_id, array $ids = array(), array $filters = array() ) {
 	if ( ! current_user_can( 'manage_options' ) ) {
 		return new WP_Error( 'adf_export_forbidden', __( 'You are not allowed to export submissions.', 'advanced-divi-forms' ) );
 	}
@@ -132,18 +133,15 @@ function adf_create_submission_export( $form_id, array $ids = array() ) {
 		}
 		$selected[ (int) $id ] = (int) $id;
 	}
-	$args = array(
-		'post_type'      => 'adf_submission',
-		'post_status'    => 'private',
-		'post_parent'    => (int) $form_id,
-		'posts_per_page' => 10001, // phpcs:ignore WordPress.WP.PostsPerPage.posts_per_page_posts_per_page -- Hard cap plus one to detect overflow; export must not silently truncate.
-		'fields'         => 'ids',
-		'no_found_rows'  => true,
-		'orderby'        => array(
-	'date' => 'DESC',
-	'ID'   => 'DESC',
-	),
-	);
+	$filters = adf_parse_submission_filters( $filters );
+	if ( is_wp_error( $filters ) ) {
+		return $filters;
+	}
+	// Explicit selections are not narrowed by a stale list filter after an edit.
+	$args                   = adf_submission_query_args( $form_id, $selected ? array( 'adf_order' => $filters['adf_order'] ) : $filters );
+	$args['posts_per_page'] = 10001; // phpcs:ignore WordPress.WP.PostsPerPage.posts_per_page_posts_per_page -- Detect overflow instead of truncating the export.
+	$args['fields']         = 'ids';
+	$args['no_found_rows']  = true;
 	if ( $selected ) {
 		$args['post__in'] = array_values( $selected );
 	}
@@ -237,15 +235,27 @@ function adf_export_submissions() {
 	// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Strict numeric validation before the form-scoped nonce check.
 	$form_id = isset( $_POST['form_id'] ) && is_string( $_POST['form_id'] ) && preg_match( '/^[1-9][0-9]*$/D', wp_unslash( $_POST['form_id'] ) ) ? (int) $_POST['form_id'] : 0;
 	check_admin_referer( 'adf_export_submissions_' . $form_id );
+	$has_ids = array_key_exists( 'submission_ids', $_POST );
+	// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Only exact allowlisted scopes are accepted below; missing scope preserves legacy callers.
+	$scope = array_key_exists( 'scope', $_POST ) ? wp_unslash( $_POST['scope'] ) : ( $has_ids ? 'selected' : 'all' );
+	if ( ! is_string( $scope ) || ! in_array( $scope, array( 'selected', 'filtered', 'all' ), true ) || ( 'selected' !== $scope && $has_ids ) ) {
+		wp_die( esc_html__( 'Choose an unambiguous selected, filtered or all-submissions export.', 'advanced-divi-forms' ), '', array( 'response' => 400 ) );
+	}
+	// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- The parser validates each known filter and ignores other query arguments.
+	$filters = adf_parse_submission_filters( wp_unslash( $_POST ) );
+	if ( is_wp_error( $filters ) ) {
+		wp_die( esc_html( $filters->get_error_message() ), '', array( 'response' => 400 ) );
+	}
 	$ids = array();
-	if ( isset( $_POST['submission_ids'] ) ) {
-		if ( ! is_array( $_POST['submission_ids'] ) || 0 === count( $_POST['submission_ids'] ) ) {
+	if ( 'selected' === $scope ) {
+		if ( ! $has_ids || ! is_array( $_POST['submission_ids'] ) || 0 === count( $_POST['submission_ids'] ) ) {
 			wp_die( esc_html__( 'Select at least one submission to export.', 'advanced-divi-forms' ), '', array( 'response' => 400 ) );
 		}
-		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Each ID is strictly validated in the export helper before querying private data.
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- The export API validates every ID and its form before querying.
 		$ids = wp_unslash( $_POST['submission_ids'] );
 	}
-	$file = adf_create_submission_export( $form_id, $ids );
+	$query_filters = 'filtered' === $scope ? $filters : ( 'selected' === $scope ? array( 'adf_order' => $filters['adf_order'] ) : array() );
+	$file          = adf_create_submission_export( $form_id, $ids, $query_filters );
 	if ( is_wp_error( $file ) ) {
 		wp_die(
 			esc_html( $file->get_error_message() ),

@@ -1,3 +1,23 @@
+.adf-submissions .adf-filter-form {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-end;
+	gap: 12px;
+	padding: 20px;
+	margin: 20px 0 16px;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	background: #fff;
+}
+.adf-filter-form .adf-filter-field { display: grid; gap: 6px; margin: 0; max-width: 100%; }
+.adf-filter-form .adf-filter-field:first-of-type { flex: 1 1 220px; }
+.adf-filter-form .adf-filter-field input,
+.adf-filter-form .adf-filter-field select { max-width: 100%; margin: 0; }
+@media (max-width: 600px) {
+	.adf-submissions .adf-filter-form { padding: 16px; }
+	.adf-filter-form .adf-filter-field { flex: 1 1 140px; }
+	.adf-filter-form .adf-filter-field:first-of-type { flex-basis: 100%; }
+}
 .adf-submissions .adf-export-all,
 .adf-submissions #adf-bulk-form,
 .adf-submission-detail .adf-submission-actions {

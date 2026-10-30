@@ -31,6 +31,7 @@ $original_user = get_current_user_id();
 $original_get = $_GET;
 $original_post = $_POST;
 $original_request = $_REQUEST;
+$original_server = $_SERVER;
 $created = array();
 $subscriber_id = 0;
 $admins = get_users( array( 'role' => 'administrator', 'number' => 1 ) );
@@ -144,6 +145,7 @@ try {
 	}
 
 	wp_set_current_user( $admins[0]->ID );
+	$_SERVER['REQUEST_METHOD'] = 'POST';
 	$_POST = array( 'submission_id' => $answer, 'adf_mark_read' => '1' );
 	$_REQUEST = array( '_wpnonce' => 'invalid' );
 	try {
@@ -191,4 +193,5 @@ try {
 	$_GET = $original_get;
 	$_POST = $original_post;
 	$_REQUEST = $original_request;
+	$_SERVER = $original_server;
 }

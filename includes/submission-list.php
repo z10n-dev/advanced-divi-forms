@@ -30,9 +30,10 @@ function adf_enqueue_submission_assets( $hook ) {
  *
  * @param WP_Post $submission Submission post.
  * @param int     $page       Current list page.
+ * @param array   $filters    Validated list filters.
  * @return void
  */
-function adf_render_submission_quick_edit( $submission, $page = 1 ) {
+function adf_render_submission_quick_edit( $submission, $page = 1, array $filters = array() ) {
 	$read = get_post_meta( $submission->ID, '_adf_read', true ) ? '1' : '0';
 	$note = adf_field_text( get_post_meta( $submission->ID, '_adf_note', true ) );
 	?>
@@ -44,6 +45,7 @@ function adf_render_submission_quick_edit( $submission, $page = 1 ) {
 			<input type="hidden" name="form_id" value="<?php echo esc_attr( $submission->post_parent ); ?>">
 			<input type="hidden" name="submission_ids[]" value="<?php echo esc_attr( $submission->ID ); ?>">
 			<input type="hidden" name="return_page" value="<?php echo esc_attr( $page ); ?>">
+			<?php adf_render_submission_filter_fields( $filters ); ?>
 			<?php wp_nonce_field( 'adf_manage_submissions_' . $submission->post_parent, '_wpnonce', false ); ?>
 			<p>
 				<label for="adf-read-<?php echo esc_attr( $submission->ID ); ?>"><?php esc_html_e( 'Status', 'advanced-divi-forms' ); ?></label>
@@ -74,13 +76,21 @@ function adf_render_submission_quick_edit( $submission, $page = 1 ) {
  */
 function adf_render_submission_list( $form ) {
 	adf_require_admin();
-	$page  = max( 1, adf_admin_query_id( 'adf_paged' ) );
-	$query = adf_submission_query( $form->ID, $page );
+	$filters   = adf_current_submission_filters();
+	$page      = max( 1, adf_admin_query_id( 'adf_paged' ) );
+	$query     = adf_submission_query( $form->ID, $page, 20, $filters );
+	$last_page = max( 1, (int) $query->max_num_pages );
+	if ( $page > $last_page ) {
+		$page  = $last_page;
+		$query = adf_submission_query( $form->ID, $page, 20, $filters );
+	}
 	?>
 	<div class="wrap adf-submissions">
 		<h1><?php echo esc_html( $form->post_title ); ?></h1>
 		<p><a href="<?php echo esc_url( adf_forms_url() ); ?>">&larr; <?php esc_html_e( 'All Forms', 'advanced-divi-forms' ); ?></a></p>
 		<h2><?php esc_html_e( 'Submissions', 'advanced-divi-forms' ); ?></h2>
+		<?php adf_render_submission_filters( $form->ID, $filters ); ?>
+		<p class="adf-result-count"><?php echo esc_html( sprintf( __( '%d matching submissions', 'advanced-divi-forms' ), $query->found_posts ) ); // phpcs:ignore WordPress.WP.I18n.MissingTranslatorsComment -- Number of submissions matching the current filters. ?></p>
 		<?php if ( adf_admin_query_id( 'adf_updated' ) ) : ?>
 			<div class="notice notice-success inline"><p><?php esc_html_e( 'Submission changes saved.', 'advanced-divi-forms' ); ?></p></div>
 		<?php endif; ?>
@@ -89,13 +99,16 @@ function adf_render_submission_list( $form ) {
 			<input type="hidden" name="action" value="adf_export_submissions">
 			<input type="hidden" name="form_id" value="<?php echo esc_attr( $form->ID ); ?>">
 			<?php wp_nonce_field( 'adf_export_submissions_' . $form->ID, '_wpnonce', false ); ?>
-			<?php submit_button( __( 'Export all to Excel', 'advanced-divi-forms' ), 'secondary', 'export', false ); ?>
+			<?php adf_render_submission_filter_fields( $filters ); ?>
+			<button type="submit" class="button" name="scope" value="filtered"><?php esc_html_e( 'Export filtered to Excel', 'advanced-divi-forms' ); ?></button>
+			<button type="submit" class="button" name="scope" value="all"><?php esc_html_e( 'Export all to Excel', 'advanced-divi-forms' ); ?></button>
 			<span class="description"><?php esc_html_e( 'XLSX · up to 10,000 submissions per export. Includes internal notes; handle downloads as private data.', 'advanced-divi-forms' ); ?></span>
 		</form>
 		<form id="adf-bulk-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 			<input type="hidden" name="action" value="adf_manage_submissions">
 			<input type="hidden" name="form_id" value="<?php echo esc_attr( $form->ID ); ?>">
 			<input type="hidden" name="return_page" value="<?php echo esc_attr( $page ); ?>">
+			<?php adf_render_submission_filter_fields( $filters ); ?>
 			<?php wp_nonce_field( 'adf_manage_submissions_' . $form->ID, '_wpnonce', false ); ?>
 			<div class="tablenav top">
 				<label class="screen-reader-text" for="adf-bulk-operation"><?php esc_html_e( 'Bulk actions', 'advanced-divi-forms' ); ?></label>
@@ -122,16 +135,20 @@ function adf_render_submission_list( $form ) {
 			</tr></thead>
 			<tbody>
 			<?php if ( ! $query->posts ) : ?>
-				<tr><td colspan="5"><?php esc_html_e( 'No submissions have been received yet.', 'advanced-divi-forms' ); ?></td></tr>
+				<tr><td colspan="5"><?php esc_html_e( 'No submissions match these filters.', 'advanced-divi-forms' ); ?></td></tr>
 			<?php endif; ?>
 			<?php foreach ( $query->posts as $submission ) : ?>
 				<?php
 				$fields = (array) get_post_meta( $submission->ID, '_adf_fields', true );
 				$read   = get_post_meta( $submission->ID, '_adf_read', true );
 				$url    = adf_forms_url(
-					array(
-						'form_id'       => $form->ID,
-						'submission_id' => $submission->ID,
+					array_merge(
+						adf_submission_filter_args( $filters ),
+						array(
+							'form_id'       => $form->ID,
+							'submission_id' => $submission->ID,
+							'adf_paged'     => $page,
+						)
 					)
 				);
 				?>
@@ -139,14 +156,25 @@ function adf_render_submission_list( $form ) {
 					<th scope="row" class="check-column"><input type="checkbox" form="adf-bulk-form" name="submission_ids[]" value="<?php echo esc_attr( $submission->ID ); ?>" aria-label="<?php echo esc_attr( sprintf( __( 'Select submission #%d', 'advanced-divi-forms' ), $submission->ID ) ); // phpcs:ignore WordPress.WP.I18n.MissingTranslatorsComment -- Submission identifier label. ?>"></th>
 					<td><a href="<?php echo esc_url( $url ); ?>"><?php echo esc_html( get_the_date( 'Y-m-d H:i', $submission ) ); ?></a><br><span class="description">#<?php echo esc_html( $submission->ID ); ?></span></td>
 					<td><span class="adf-status <?php echo $read ? 'adf-status-read' : 'adf-status-new'; ?>"><?php echo $read ? esc_html__( 'Read', 'advanced-divi-forms' ) : esc_html__( 'New', 'advanced-divi-forms' ); ?></span></td>
-					<td class="adf-preview"><?php echo esc_html( wp_trim_words( implode( ' · ', array_map( 'adf_field_text', $fields ) ), 18 ) ); ?><?php adf_render_submission_quick_edit( $submission, $page ); ?></td>
+					<td class="adf-preview"><?php echo esc_html( wp_trim_words( implode( ' · ', array_map( 'adf_field_text', $fields ) ), 18 ) ); ?><?php adf_render_submission_quick_edit( $submission, $page, $filters ); ?></td>
 					<td class="adf-note-preview"><?php echo esc_html( adf_field_text( get_post_meta( $submission->ID, '_adf_note', true ) ) ); ?></td>
 				</tr>
 			<?php endforeach; ?>
 			</tbody>
 		</table>
 		</div>
-		<?php adf_render_pagination( $query, array( 'form_id' => $form->ID ) ); ?>
+		<?php
+		adf_render_pagination(
+			$query,
+			array_merge(
+				adf_submission_filter_args( $filters ),
+				array(
+					'form_id'   => $form->ID,
+					'adf_paged' => $page,
+				)
+			)
+		);
+		?>
 	</div>
 	<?php
 }

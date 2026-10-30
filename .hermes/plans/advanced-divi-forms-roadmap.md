@@ -20,16 +20,30 @@ noch nicht genehmigt ist: lokale Umsetzung und Verifikation sind das Goal.
 ## Iterationen und prüfbare Akzeptanzkriterien
 
 ### 1. Updater transparenter und manuelles Prüfen zuverlässig
-- [ ] Berechtigte manuelle Prüfung umgeht den eigenen Release-Cache UND stößt einen
+- [x] Berechtigte manuelle Prüfung umgeht den eigenen Release-Cache UND stößt einen
       passenden WordPress-Pluginupdate-Check an; POST und Nonce schützen Aktionen.
-- [ ] Installierte Version, neueste gültige Release-Version, letzter erfolgreicher
+- [x] Installierte Version, neueste gültige Release-Version, letzter erfolgreicher
       Check und verständliche Fehlerdiagnose sind im Backend sichtbar.
-- [ ] Kein Update bei gleicher/älterer Version; fremde Plugins bleiben unangetastet.
-- [ ] Regressionstests für alten Cache/neues Release, Netzwerkfehler, Rate Limit,
+- [x] Kein Update bei gleicher/älterer Version; fremde Plugins bleiben unangetastet.
+- [x] Regressionstests für alten Cache/neues Release, Netzwerkfehler, Rate Limit,
       ungültige Antwort, fehlendes ZIP sowie WordPress response/no_update-Pfad.
-- [ ] Kein pauschales Deaktivieren des Caches und keine automatische Updatefreigabe.
+- [x] Kein pauschales Deaktivieren des Caches und keine automatische Updatefreigabe.
 Dateien: `includes/github-updater.php`, neue Backend-Diagnose nach Bedarf,
 `tests/github-updater.php`, zusätzliche WP-Integrationstests und README.
+
+Beleg Iteration 1: Commit `dd66b3714abb9de0a2d6def22da65371fb571ccf` (0.6.0).
+TDD rot: neue WP-Suite scheiterte zuerst am fehlenden Fresh-Check-API, danach am
+fehlenden POST-Handler. Grün: alle neun WP-Suiten aus dem Smoke-Skript gegen den
+installierten ZIP; PHP-Syntax, PHPCS, Version, Updater, Divi-JS, JS-Syntax und
+`git diff --check`. Vollständige Ausgabe: Scratch `adf-test/updater-verification.txt`.
+Chromium: neue Updaterprüfung mit echter anonymer GitHub-Antwort 0.5.1,
+Cache-Umgehung und GET-Ablehnung; Desktop/Tablet/Mobil 1280/768/390px.
+Alle drei Bestands-Browsersuiten grün, XLSX-Downloads mit openpyxl gegengelesen;
+Checkbox-Fix erhalten. Unabhängiges Read-only-Review ohne Befunde, Tool-Aufrufe
+im Delegationstranskript geprüft (`deleg_564440f5`). SQLite, kein MySQL-Nachweis.
+ZIP-Dateien stimmen bytegenau mit installiertem Plugin und Source überein;
+SHA256 `144f94d8a3edf2dd154f1f6a9124651591751468c660f2d920cdb683ab6f3167`.
+Keine Veröffentlichung.
 
 ### 2. Suche, Status-/Datumsfilter und konsistenter Excel-Export
 - [ ] Suche nach Name, E-Mail oder Formularinhalt; Filter gelesen/ungelesen sowie
