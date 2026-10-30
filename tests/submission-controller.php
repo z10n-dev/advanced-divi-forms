@@ -17,7 +17,7 @@ function adf_controller_call( array $post, $method = 'POST', $export = false ) {
 	$_REQUEST = $_POST;
 	$_SERVER['REQUEST_METHOD'] = $method;
 	try {
-		if ( $export ) { adf_export_submissions(); } else { adf_manage_submissions(); }
+		if ( 'detail' === $export ) { adf_update_submission(); } elseif ( $export ) { adf_export_submissions(); } else { adf_manage_submissions(); }
 		return 'returned';
 	} catch ( ADF_Controller_Die $error ) {
 		return $error->getCode();
@@ -50,6 +50,13 @@ try {
 	$location = adf_controller_call( $post );
 	adf_controller_expect( is_string( $location ) && str_contains( $location, 'adf_paged=2' ) && str_contains( $location, 'form_id=' . $form ), 'Successful Quick Edit must redirect to its form and original page.' );
 	adf_controller_expect( '1' === get_post_meta( $id, '_adf_read', true ) && "O'Brien C:\\work" === get_post_meta( $id, '_adf_note', true ) && $fields === get_post_meta( $id, '_adf_fields', true ), 'Controller must preserve notes exactly as plain text and never edit original fields.' );
+	$filtered = array_merge( $post, array( 'adf_search' => 'Untouched', 'adf_status' => 'read', 'adf_from' => '2020-01-01', 'adf_to' => '2099-12-31', 'adf_order' => 'oldest' ) );
+	$location = adf_controller_call( $filtered );
+	adf_controller_expect( str_contains( $location, 'adf_search=Untouched' ) && str_contains( $location, 'adf_status=read' ) && str_contains( $location, 'adf_from=2020-01-01' ) && str_contains( $location, 'adf_to=2099-12-31' ) && str_contains( $location, 'adf_order=oldest' ) && str_contains( $location, 'adf_paged=2' ), 'Quick Edit must preserve every validated filter and page in its local redirect.' );
+	$bad_filter = $filtered;
+	$bad_filter['adf_from'] = '2026-02-31';
+	$bad_filter['read'] = '0';
+	adf_controller_expect( 400 === adf_controller_call( $bad_filter ) && '1' === get_post_meta( $id, '_adf_read', true ), 'Invalid filter context must be rejected before editing a record.' );
 	$empty = $post;
 	$empty['operation'] = 'export';
 	$empty['submission_ids'] = array();
@@ -66,6 +73,25 @@ try {
 	adf_controller_expect( 400 === adf_controller_call( $export, 'POST', true ), 'An explicit empty export selection must not export all.' );
 	$export['submission_ids'] = array( (string) $form );
 	adf_controller_expect( 400 === adf_controller_call( $export, 'POST', true ), 'Exports must reject IDs that are not answers from this form.' );
+	$detail = array_merge( $filtered, array( 'submission_id' => (string) $id, 'adf_mark_read' => '1', '_wpnonce' => wp_create_nonce( 'adf_submission_' . $id ) ) );
+	adf_controller_expect( 405 === adf_controller_call( $detail, 'GET', 'detail' ), 'Detail actions must reject non-POST requests.' );
+	$location = adf_controller_call( $detail, 'POST', 'detail' );
+	adf_controller_expect( str_contains( $location, 'adf_search=Untouched' ) && str_contains( $location, 'adf_order=oldest' ) && str_contains( $location, 'adf_paged=2' ), 'Detail actions must preserve the validated list context.' );
+	$trash_post = array( 'submission_id' => (string) $id, '_wpnonce' => wp_create_nonce( 'adf_submission_' . $id ), 'adf_trash' => '1', 'return_page' => '2', 'adf_search' => 'Untouched' );
+	$location = adf_controller_call( $trash_post, 'POST', 'detail' );
+	adf_controller_expect( 'trash' === get_post_status( $id ) && str_contains( $location, 'adf_search=Untouched' ), 'The normal detail action must move an answer into recoverable Trash and preserve context.' );
+	$restore_post = $trash_post; unset( $restore_post['adf_trash'] ); $restore_post['adf_restore'] = '1'; $restore_post['adf_view'] = 'trash';
+	$location = adf_controller_call( $restore_post, 'POST', 'detail' );
+	adf_controller_expect( 'private' === get_post_status( $id ) && str_contains( $location, 'adf_view=trash' ), 'The detail restore action must preserve private storage and the Trash navigation context.' );
+	$delete_post = $restore_post; unset( $delete_post['adf_restore'] ); $delete_post['adf_delete'] = '1'; $delete_post['adf_confirm_delete'] = '1';
+	adf_controller_expect( 400 === adf_controller_call( $delete_post, 'POST', 'detail' ) && get_post( $id ), 'The direct detail endpoint must not bypass the separate Trash step for permanent deletion.' );
+	$ambiguous = $trash_post; $ambiguous['adf_mark_read'] = '1';
+	adf_controller_expect( 400 === adf_controller_call( $ambiguous, 'POST', 'detail' ) && 'private' === get_post_status( $id ), 'Ambiguous detail operations must fail before any mutation.' );
+	adf_controller_call( $trash_post, 'POST', 'detail' );
+	$missing_confirmation = $delete_post; unset( $missing_confirmation['adf_confirm_delete'] );
+	adf_controller_expect( 400 === adf_controller_call( $missing_confirmation, 'POST', 'detail' ) && get_post( $id ), 'The direct detail endpoint must enforce permanent-delete confirmation.' );
+	adf_controller_call( $delete_post, 'POST', 'detail' );
+	adf_controller_expect( null === get_post( $id ), 'A valid confirmed detail request must permanently remove the trashed answer.' );
 	wp_set_current_user( 0 );
 	adf_controller_expect( 403 === adf_controller_call( $post ), 'Anonymous callers must not reach the action handler.' );
 	WP_CLI::success( 'Submission POST controller tests passed.' );

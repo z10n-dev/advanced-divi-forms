@@ -15,7 +15,7 @@ with sync_playwright() as p:
     page = context.new_page()
     page.goto(url, wait_until='networkidle')
     page.locator('input[form="adf-bulk-form"]').first.check()
-    page.locator('#adf-bulk-operation').select_option('delete')
+    page.locator('#adf-bulk-operation').select_option('trash')
     button = page.locator('#adf-bulk-form [name="apply"]')
     expect(button).to_have_class(__import__('re').compile(r'\badf-button-danger\b'))
     assert button.evaluate('e => getComputedStyle(e).backgroundColor') == 'rgb(179, 45, 46)'
@@ -39,7 +39,7 @@ with sync_playwright() as p:
         assert button.is_visible()
     page.set_viewport_size({'width': 1280, 'height': 900})
     page.goto(url + '&submission_id=' + first_id, wait_until='networkidle')
-    delete = page.locator('[name="adf_delete"]')
+    delete = page.locator('[name="adf_trash"]')
     assert delete.evaluate('e => getComputedStyle(e).backgroundColor') == 'rgb(179, 45, 46)'
     assert page.locator('.adf-submission-actions').evaluate('e => parseFloat(getComputedStyle(e).marginTop)') >= 24
     print('PASS: red bulk/single delete buttons, hover/focus, action reset, spacing and narrow viewports')

@@ -95,6 +95,8 @@ try {
 	$submissions = adf_submission_query( $form );
 	adf_divi_expect( 1 === $submissions->found_posts, 'A validated opt-in submission must be saved once for an anonymous visitor.' );
 	foreach ( $submissions->posts as $submission ) { $created[] = $submission->ID; }
+	adf_divi_expect( array( 'name' => 'Your name' ) === get_post_meta( $submissions->posts[0]->ID, '_adf_field_labels', true ), 'Anonymous Divi capture must snapshot only nonempty labels supplied by validated fields.' );
+	adf_divi_expect( 'sender@example.org' === get_post_meta( $submissions->posts[0]->ID, '_adf_email', true ), 'Anonymous Divi capture must store the validated email for exact privacy export/erasure.' );
 	$messages = array();
 	\ET\Builder\Packages\ModuleLibrary\ContactForm\ContactFormHandler::process( $fields, true, $info );
 	adf_divi_expect( ! $messages && 1 === adf_submission_query( $form )->found_posts, 'Validation/captcha errors must not store data or send confirmations.' );

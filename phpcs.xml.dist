@@ -9,6 +9,15 @@
     <arg name="extensions" value="php"/>
     <rule ref="WordPress"/>
     <config name="minimum_wp_version" value="6.2"/>
+    <rule ref="WordPress.WP.Capabilities">
+        <properties>
+            <property name="custom_capabilities" type="array">
+                <element value="adf_view_submissions"/>
+                <element value="adf_manage_submissions"/>
+                <element value="adf_export_submissions"/>
+            </property>
+        </properties>
+    </rule>
     <rule ref="WordPress.NamingConventions.PrefixAllGlobals">
         <properties>
             <property name="prefixes" type="array">

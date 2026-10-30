@@ -1,0 +1,18 @@
+.adf-template-preview {
+    margin-top: 24px;
+    padding: 18px;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+    background: #f6f7f7;
+    overflow-wrap: anywhere;
+}
+.adf-template-preview .adf-placeholder-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+.adf-template-preview .adf-placeholder-buttons .button { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+.adf-template-preview iframe { box-sizing: border-box; display: block; width: 100%; min-height: 350px; border: 1px solid #c3c4c7; background: #fff; }
+.adf-template-preview #adf-preview-status { margin: 16px 0; }
+.adf-template-preview #adf-preview-diagnostics { color: #714b00; padding-left: 20px; list-style: disc; }
+.adf-template-preview .adf-preview-error { color: #b32d2e; font-weight: 600; }
+@media (max-width: 600px) {
+    .adf-template-preview { padding: 12px; }
+    .adf-template-preview #adf-insert-target { max-width: 100%; }
+}

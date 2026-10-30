@@ -31,6 +31,7 @@ $original_user = get_current_user_id();
 $original_get = $_GET;
 $original_post = $_POST;
 $original_request = $_REQUEST;
+$original_server = $_SERVER;
 $created = array();
 $subscriber_id = 0;
 $admins = get_users( array( 'role' => 'administrator', 'number' => 1 ) );
@@ -144,6 +145,7 @@ try {
 	}
 
 	wp_set_current_user( $admins[0]->ID );
+	$_SERVER['REQUEST_METHOD'] = 'POST';
 	$_POST = array( 'submission_id' => $answer, 'adf_mark_read' => '1' );
 	$_REQUEST = array( '_wpnonce' => 'invalid' );
 	try {
@@ -159,11 +161,14 @@ try {
 		adf_integration_expect( str_contains( $redirect->getMessage(), 'form_id=' . $form_id ), 'Submission actions must return to the form.' );
 	}
 	adf_integration_expect( '1' === get_post_meta( $answer, '_adf_read', true ), 'A valid POST must mark the answer as read.' );
+	$_POST = array( 'submission_id' => $answer, 'adf_trash' => '1' );
+	try { adf_update_submission(); } catch ( ADF_Test_Redirect $redirect ) {}
+	adf_integration_expect( 'trash' === get_post_status( $answer ), 'The normal detail action must use recoverable Trash.' );
 	$_POST = array( 'submission_id' => $answer, 'adf_delete' => '1' );
 	try {
 		adf_update_submission();
-	} catch ( ADF_Test_Redirect $redirect ) {
-		// A delete request without confirmation must not delete data.
+	} catch ( ADF_Test_Denied $error ) {
+		adf_integration_expect( str_contains( $error->getMessage(), 'Confirm permanent deletion' ), 'Missing permanent-delete confirmation must return a clear error.' );
 	}
 	adf_integration_expect( null !== get_post( $answer ), 'Deletion requires explicit confirmation.' );
 	$_POST['adf_confirm_delete'] = '1';
@@ -191,4 +196,5 @@ try {
 	$_GET = $original_get;
 	$_POST = $original_post;
 	$_REQUEST = $original_request;
+	$_SERVER = $original_server;
 }

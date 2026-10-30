@@ -37,7 +37,7 @@
 	function updateOperation() {
 		var deleting = operation && operation.value === 'delete';
 		if (apply) {
-			apply.classList.toggle('adf-button-danger', Boolean(deleting));
+			apply.classList.toggle('adf-button-danger', Boolean(deleting || (operation && operation.value === 'trash')));
 		}
 		if (confirmation) {
 			confirmation.hidden = !deleting;

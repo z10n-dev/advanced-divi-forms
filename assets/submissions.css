@@ -1,3 +1,23 @@
+.adf-submissions .adf-filter-form {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-end;
+	gap: 12px;
+	padding: 20px;
+	margin: 20px 0 16px;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	background: #fff;
+}
+.adf-filter-form .adf-filter-field { display: grid; gap: 6px; margin: 0; max-width: 100%; }
+.adf-filter-form .adf-filter-field:first-of-type { flex: 1 1 220px; }
+.adf-filter-form .adf-filter-field input,
+.adf-filter-form .adf-filter-field select { max-width: 100%; margin: 0; }
+@media (max-width: 600px) {
+	.adf-submissions .adf-filter-form { padding: 16px; }
+	.adf-filter-form .adf-filter-field { flex: 1 1 140px; }
+	.adf-filter-form .adf-filter-field:first-of-type { flex-basis: 100%; }
+}
 .adf-submissions .adf-export-all,
 .adf-submissions #adf-bulk-form,
 .adf-submission-detail .adf-submission-actions {
@@ -61,8 +81,26 @@
 	color: #632425;
 	line-height: 1.6;
 }
-.adf-delete-confirm label { display: flex; align-items: flex-start; gap: 8px; }
-.adf-delete-confirm input[type="checkbox"] { flex-shrink: 0; margin: 3px 0 0; }
+.adf-delete-confirm label {
+	--adf-confirm-checkbox-size: 16px;
+	display: grid;
+	grid-template-columns: var(--adf-confirm-checkbox-size) minmax(0, 1fr);
+	align-items: start;
+	gap: 10px;
+	line-height: max(1.6em, var(--adf-confirm-checkbox-size));
+}
+.adf-delete-confirm label > span { min-width: 0; }
+/* Override WordPress's higher-specificity negative paragraph-label margin. */
+.wp-admin .adf-delete-confirm label > input[type="checkbox"] {
+	box-sizing: border-box;
+	font-size: inherit;
+	width: var(--adf-confirm-checkbox-size);
+	height: var(--adf-confirm-checkbox-size);
+	margin: calc((max(1.6em, var(--adf-confirm-checkbox-size)) - var(--adf-confirm-checkbox-size)) / 2) 0 0;
+}
+@media (max-width: 782px) {
+	.adf-delete-confirm label { --adf-confirm-checkbox-size: 25px; }
+}
 .adf-submission-detail .adf-submission-actions { margin-top: 24px; }
 .adf-submission-detail .adf-delete-confirm { margin: 0 0 20px; }
 .adf-submission-detail .adf-single-status-action { margin-bottom: 20px; }
