@@ -127,6 +127,38 @@ function adf_field_text( $value ) {
 }
 
 /**
+ * Read historical labels only; never infer them from a newer form definition.
+ *
+ * @param int $submission_id Stored submission ID, already authorized by caller.
+ * @return array Field IDs mapped to sanitized labels or stable-ID fallback.
+ */
+function adf_get_submission_labels( $submission_id ) {
+	$fields   = (array) get_post_meta( $submission_id, '_adf_fields', true );
+	$snapshot = get_post_meta( $submission_id, '_adf_field_labels', true );
+	$snapshot = is_array( $snapshot ) ? $snapshot : array();
+	$result   = array();
+	foreach ( $fields as $key => $unused ) {
+		$label          = isset( $snapshot[ $key ] ) && is_scalar( $snapshot[ $key ] ) ? adf_field_text( $snapshot[ $key ] ) : '';
+		$result[ $key ] = '' === $label ? (string) $key : $label;
+	}
+	return $result;
+}
+
+/**
+ * Show a human label without hiding or merging the stable field identifier.
+ *
+ * @param int        $submission_id Authorized submission.
+ * @param string     $key           Stable field ID.
+ * @param array|null $labels        Optional per-record cache for bulk rendering.
+ * @return string Plain text for context-specific escaping by the caller.
+ */
+function adf_submission_field_title( $submission_id, $key, ?array $labels = null ) {
+	$labels = null === $labels ? adf_get_submission_labels( $submission_id ) : $labels;
+	$label  = $labels[ $key ] ?? (string) $key;
+	return $label === (string) $key ? $label : $label . ' [' . $key . ']';
+}
+
+/**
  * Store validated fields from a trusted form integration.
  *
  * The caller must validate the submission and spam/consent checks first.
@@ -134,9 +166,10 @@ function adf_field_text( $value ) {
  *
  * @param int   $form_id Registered form ID.
  * @param array $fields  Map of field IDs to submitted values.
+ * @param array $labels  Optional field-ID label snapshot; does not alter fields.
  * @return int|WP_Error
  */
-function adf_store_submission( $form_id, array $fields ) {
+function adf_store_submission( $form_id, array $fields, array $labels = array() ) {
 	$form = $form_id ? get_post( absint( $form_id ) ) : null;
 	if ( ! $form || 'adf_form' !== $form->post_type || 'private' !== $form->post_status ) {
 		return new WP_Error( 'adf_invalid_form', __( 'The form does not exist.', 'advanced-divi-forms' ) );
@@ -150,11 +183,19 @@ function adf_store_submission( $form_id, array $fields ) {
 		}
 		$clean_fields[ $key ] = adf_field_text( $value );
 	}
+	$clean_labels = array();
+	foreach ( $clean_fields as $key => $value ) {
+		if ( isset( $labels[ $key ] ) && is_scalar( $labels[ $key ] ) ) {
+			$label = adf_field_text( $labels[ $key ] );
+			if ( '' !== $label ) {
+				$clean_labels[ $key ] = $label; }
+		}
+	}
 	if ( ! $clean_fields ) {
 		return new WP_Error( 'adf_empty_submission', __( 'The submission contains no fields.', 'advanced-divi-forms' ) );
 	}
 
-	return wp_insert_post(
+	$submission_id = wp_insert_post(
 		wp_slash(
 			array(
 				'post_type'   => 'adf_submission',
@@ -162,11 +203,18 @@ function adf_store_submission( $form_id, array $fields ) {
 				'post_parent' => $form->ID,
 				'post_title'  => $form->post_title,
 				'meta_input'  => array(
-					'_adf_fields' => $clean_fields,
-					'_adf_read'   => 0,
+					'_adf_fields'       => $clean_fields,
+					'_adf_field_labels' => $clean_labels,
+					'_adf_read'         => 0,
 				),
 			)
 		),
 		true
 	);
+	if ( is_wp_error( $submission_id ) ) {
+		return $submission_id; }
+	if ( $clean_labels && get_post_meta( $submission_id, '_adf_field_labels', true ) !== $clean_labels ) {
+		return new WP_Error( 'adf_label_snapshot_failed', __( 'The original submission was retained, but its label snapshot could not be stored. Review storage before collecting more answers.', 'advanced-divi-forms' ), array( 'submission_id' => $submission_id ) );
+	}
+	return $submission_id;
 }

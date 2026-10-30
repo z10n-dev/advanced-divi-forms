@@ -72,6 +72,21 @@ function adf_render_submission_quick_edit( $submission, $page = 1, array $filter
 }
 
 /**
+ * Short historical field captions and values, never HTML.
+ *
+ * @param int $submission_id Authorized submission ID.
+ * @return string Human-readable preview retaining stable identifiers.
+ */
+function adf_submission_preview_text( $submission_id ) {
+	$parts  = array();
+	$labels = adf_get_submission_labels( $submission_id );
+	foreach ( (array) get_post_meta( $submission_id, '_adf_fields', true ) as $key => $value ) {
+		$parts[] = adf_submission_field_title( $submission_id, $key, $labels ) . ': ' . adf_field_text( $value );
+	}
+	return wp_trim_words( implode( ' · ', $parts ), 18 );
+}
+
+/**
  * Render a paginated submission list with independent, non-nested POST forms.
  *
  * @param WP_Post $form Registered form.
@@ -154,9 +169,8 @@ function adf_render_submission_list( $form ) {
 			<?php endif; ?>
 			<?php foreach ( $query->posts as $submission ) : ?>
 				<?php
-				$fields = (array) get_post_meta( $submission->ID, '_adf_fields', true );
-				$read   = get_post_meta( $submission->ID, '_adf_read', true );
-				$url    = adf_forms_url(
+				$read = get_post_meta( $submission->ID, '_adf_read', true );
+				$url  = adf_forms_url(
 					array_merge(
 						adf_submission_filter_args( $filters ),
 						array(
@@ -171,7 +185,7 @@ function adf_render_submission_list( $form ) {
 					<th scope="row" class="check-column"><input type="checkbox" form="adf-bulk-form" name="submission_ids[]" value="<?php echo esc_attr( $submission->ID ); ?>" aria-label="<?php echo esc_attr( sprintf( __( 'Select submission #%d', 'advanced-divi-forms' ), $submission->ID ) ); // phpcs:ignore WordPress.WP.I18n.MissingTranslatorsComment -- Submission identifier label. ?>"></th>
 					<td><a href="<?php echo esc_url( $url ); ?>"><?php echo esc_html( get_the_date( 'Y-m-d H:i', $submission ) ); ?></a><br><span class="description">#<?php echo esc_html( $submission->ID ); ?></span></td>
 					<td><span class="adf-status <?php echo $read ? 'adf-status-read' : 'adf-status-new'; ?>"><?php echo $read ? esc_html__( 'Read', 'advanced-divi-forms' ) : esc_html__( 'New', 'advanced-divi-forms' ); ?></span></td>
-					<td class="adf-preview"><?php echo esc_html( wp_trim_words( implode( ' · ', array_map( 'adf_field_text', $fields ) ), 18 ) ); ?><?php adf_render_submission_quick_edit( $submission, $page, $filters ); ?></td>
+					<td class="adf-preview"><?php echo esc_html( adf_submission_preview_text( $submission->ID ) ); ?><?php adf_render_submission_quick_edit( $submission, $page, $filters ); ?></td>
 					<td class="adf-note-preview"><?php echo esc_html( adf_field_text( get_post_meta( $submission->ID, '_adf_note', true ) ) ); ?></td>
 				</tr>
 			<?php endforeach; ?>

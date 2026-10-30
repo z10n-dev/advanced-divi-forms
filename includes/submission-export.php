@@ -156,18 +156,27 @@ function adf_create_submission_export( $form_id, array $ids = array(), array $fi
 	if ( count( $query->posts ) > 10000 ) {
 		return new WP_Error( 'adf_export_limit', __( 'Export at most 10,000 submissions at a time. Nothing has been truncated.', 'advanced-divi-forms' ) );
 	}
-	$keys = array();
+	$keys       = array();
+	$has_labels = false;
 	foreach ( $query->posts as $id ) {
+		$snapshot   = get_post_meta( $id, '_adf_field_labels', true );
+		$has_labels = $has_labels || ( is_array( $snapshot ) && ! empty( $snapshot ) );
 		foreach ( (array) get_post_meta( $id, '_adf_fields', true ) as $key => $unused ) {
 			$keys[ $key ] = true;
 		}
 	}
-	if ( count( $keys ) + 4 > 16384 || ( count( $keys ) + 4 ) * ( count( $query->posts ) + 1 ) > 250000 ) {
+	$column_count = 4 + count( $keys ) * ( $has_labels ? 2 : 1 );
+	if ( $column_count > 16384 || $column_count * ( count( $query->posts ) + 1 ) > 250000 ) {
 		return new WP_Error( 'adf_export_limit', __( 'The export exceeds the column or 250,000-cell safety limit. Export fewer submissions; nothing has been truncated.', 'advanced-divi-forms' ) );
 	}
 	$headers = array_merge( array( __( 'Submission ID', 'advanced-divi-forms' ), __( 'Received', 'advanced-divi-forms' ), __( 'Status', 'advanced-divi-forms' ), __( 'Internal note', 'advanced-divi-forms' ) ), array_map( 'strval', array_keys( $keys ) ) );
-	$xml     = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><sheetData>';
-	$number  = 0;
+	if ( $has_labels ) {
+		foreach ( $keys as $key => $unused ) {
+			$headers[] = sprintf( __( 'Field label [%s]', 'advanced-divi-forms' ), $key ); // phpcs:ignore WordPress.WP.I18n.MissingTranslatorsComment -- Stable field ID, distinct even when human labels repeat.
+		}
+	}
+	$xml    = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><sheetData>';
+	$number = 0;
 	// Write one header row followed by one row per answer, using the field union.
 	foreach ( array_merge( array( 0 ), $query->posts ) as $id ) {
 		if ( 0 === $id ) {
@@ -177,6 +186,12 @@ function adf_create_submission_export( $form_id, array $ids = array(), array $fi
 			$values = array( (string) $id, get_the_date( 'Y-m-d H:i:s', $id ), get_post_meta( $id, '_adf_read', true ) ? __( 'Read', 'advanced-divi-forms' ) : __( 'New', 'advanced-divi-forms' ), adf_field_text( get_post_meta( $id, '_adf_note', true ) ) );
 			foreach ( $keys as $key => $unused ) {
 				$values[] = adf_field_text( $fields[ $key ] ?? '' );
+			}
+			if ( $has_labels ) {
+				$labels = adf_get_submission_labels( $id );
+				foreach ( $keys as $key => $unused ) {
+					$values[] = array_key_exists( $key, $fields ) ? ( $labels[ $key ] ?? (string) $key ) : '';
+				}
 			}
 		}
 		$xml .= '<row r="' . ( ++$number ) . '">';

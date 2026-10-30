@@ -394,7 +394,7 @@ function adf_divi_form_submitted( $fields, $has_error, $info ) {
 	}
 	$attrs = $context['attrs'];
 	if ( 'on' === adf_divi_setting( $attrs, 'storeSubmissions', 'off' ) ) {
-		$result = adf_store_submission( $context['form_id'], $values );
+		$result = adf_store_submission( $context['form_id'], $values, $labels );
 		if ( is_wp_error( $result ) ) {
 			update_post_meta( $context['form_id'], '_adf_storage_error', $result->get_error_message() );
 		} else {

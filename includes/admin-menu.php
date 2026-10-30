@@ -324,6 +324,7 @@ function adf_render_submission( $form, $submission ) {
 	$in_trash = 'trash' === $submission->post_status;
 	$page     = max( 1, adf_admin_query_id( 'adf_paged' ) );
 	$fields   = (array) get_post_meta( $submission->ID, '_adf_fields', true );
+	$labels   = adf_get_submission_labels( $submission->ID );
 	$back_url = adf_forms_url(
 		array_merge(
 			adf_submission_filter_args( $filters ),
@@ -339,10 +340,10 @@ function adf_render_submission( $form, $submission ) {
 		<p><a href="<?php echo esc_url( $back_url ); ?>">&larr; <?php esc_html_e( 'Back to submissions', 'advanced-divi-forms' ); ?></a></p>
 		<p><?php echo esc_html( get_the_date( 'Y-m-d H:i', $submission ) ); ?></p>
 		<table class="widefat striped">
-			<thead><tr><th scope="col"><?php esc_html_e( 'Field ID', 'advanced-divi-forms' ); ?></th><th scope="col"><?php esc_html_e( 'Value', 'advanced-divi-forms' ); ?></th></tr></thead>
+			<thead><tr><th scope="col"><?php esc_html_e( 'Field / ID', 'advanced-divi-forms' ); ?></th><th scope="col"><?php esc_html_e( 'Value', 'advanced-divi-forms' ); ?></th></tr></thead>
 			<tbody>
 			<?php foreach ( $fields as $key => $value ) : ?>
-				<tr><th scope="row"><?php echo esc_html( $key ); ?></th><td style="white-space:pre-wrap;"><?php echo esc_html( adf_field_text( $value ) ); ?></td></tr>
+				<tr><th scope="row"><?php echo esc_html( adf_submission_field_title( $submission->ID, $key, $labels ) ); ?></th><td style="white-space:pre-wrap;"><?php echo esc_html( adf_field_text( $value ) ); ?></td></tr>
 			<?php endforeach; ?>
 			</tbody>
 		</table>

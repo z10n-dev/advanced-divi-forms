@@ -146,8 +146,9 @@ Trusted server-side integrations can also use:
 
 - `adf_register_form( $source_key, $name, $page_id )`: create/update a form using a
   stable source key (for example a page ID plus persistent module ID).
-- `adf_store_submission( $form_id, $fields )`: store a map of stable field IDs to
-  plain-text values. Multiselect values are joined with commas.
+- `adf_store_submission( $form_id, $fields, $labels = array() )`: store a map of
+  stable field IDs to plain-text values. The original two-argument API still works;
+  optional labels are snapshotted separately. Multiselect values are comma-joined.
 - `adf_render_mail_template( $template_id, $fields, $labels = array() )`: return
   `subject` and `html`, or `WP_Error`. Optional labels map field IDs to display names
   for `{{form.summary}}`. This function itself does not send email.
@@ -217,6 +218,29 @@ administrator capability and a valid form-scoped nonce.
 Inline editing and individual row selection work without JavaScript. JavaScript
 adds select-all, selection counts, Cancel/reset and conditional delete-confirmation
 controls. The wide table scrolls within the page on narrow screens.
+
+### Historical field labels
+
+Validated Divi receipts now store available human labels separately in
+`_adf_field_labels`, keyed by the same stable IDs as immutable `_adf_fields`.
+Later form edits never rewrite an older receipt. Missing/invalid labels and old
+records without snapshots use the ID; historical labels are never guessed from
+current form definitions. List previews and details show `Label [field_id]`.
+Two fields with the same label remain separate because their IDs do not change.
+
+Excel keeps the existing value columns and stable-ID headers in their original
+positions. When exported records include snapshots, it appends **Field label
+[field_id]** columns containing each answer's own historical names (or its ID
+fallback), not whichever name happens to be newest. Thus a mixed old/new export
+can preserve different names for the same ID, and duplicate labels never merge
+value columns. Missing fields have blank value/label cells. Legacy-only exports
+retain their original column shape. All extra cells count toward existing limits.
+
+Snapshot write failures are reported as storage errors while retaining already
+received original values; no automatic deletion or legacy backfill is performed.
+The label PHP suite and `tests/submission-labels-browser.py` exercise immutable
+values, duplicates, renaming, legacy fallback, Trash/Restore, Quick Edit and real
+HTTP Excel downloads independently read with openpyxl.
 
 ### Recoverable Trash and native WordPress cleanup
 

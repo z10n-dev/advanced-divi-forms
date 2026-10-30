@@ -138,7 +138,8 @@ Beleg Iteration 3: Commit `a603f92373849afc1f26371c1c1b3a7ec7b9000e` (0.8.0).
 - [x] Rendering bleibt escaped, nicht rekursiv, Body-/Attributgrenzen bleiben sicher.
 Dateien: `includes/mail-templates.php`, Editor-Assets und Tests/README.
 
-Beleg Iteration 4 (0.9.0), Verifikation vollständig abgeschlossen:
+Beleg Iteration 4 (0.9.0), Commit `2b6a2c738c14aa7776d6bbac9f675d35f9c8178d`,
+Verifikation vollständig abgeschlossen:
 - Reiner Renderer plus geschützte, synthetische POST/AJAX-Vorschau und echte
   CodeMirror-/Betreff-Platzhalterbuttons. Keine Speicherung von Testdaten;
   fehlende/unbekannte/Attribut-Tokens und body-only Summary werden erläutert.
@@ -167,13 +168,43 @@ Beleg Iteration 4 (0.9.0), Verifikation vollständig abgeschlossen:
   blockierenden Befunde. Letzte Browseränderung ergänzt nur Scroll/Paint-Aufnahmen.
 
 ### 5. Lesbare Feldbeschriftungen mit historischem Snapshot
-- [ ] Beim Eingang stabile Feld-ID plus verfügbare Beschriftung separat speichern;
+- [x] Beim Eingang stabile Feld-ID plus verfügbare Beschriftung separat speichern;
       originale `_adf_fields` und der bestehende API-Vertrag bleiben erhalten.
-- [ ] Einsendungsliste/-detail und Excel zeigen Beschriftungen, IDs bleiben sichtbar
+- [x] Einsendungsliste/-detail und Excel zeigen Beschriftungen, IDs bleiben sichtbar
       oder zugänglich; doppelte Beschriftungen führen nicht zu Spaltenvermischung.
-- [ ] Spätere Umbenennung im Formular verändert historische Antworten nicht.
-- [ ] Alte Datensätze ohne Label-Snapshot funktionieren unverändert mit ID-Fallback.
+- [x] Spätere Umbenennung im Formular verändert historische Antworten nicht.
+- [x] Alte Datensätze ohne Label-Snapshot funktionieren unverändert mit ID-Fallback.
 Dateien: `includes/form-data.php`, `includes/divi-integration.php`, UI/Export/Tests.
+
+Beleg Iteration 5 (0.10.0), Arbeitsbaum verifiziert, Review/Commit ausstehend:
+- `adf_store_submission( $form_id, $fields, array $labels = array() )` bleibt für
+  Zwei-Argument-Aufrufer kompatibel. `_adf_fields` bleibt byteidentisch; zusätzlich
+  `_adf_field_labels` nur für tatsächlich übermittelte IDs, saniert, leere Labels
+  ausgelassen. Divi übergibt die validierten Labels.
+- `adf_get_submission_labels()` liest ausschließlich den eigenen Snapshot; fehlende
+  oder nicht-skalare Werte fallen auf die ID zurück. Formular-Umbenennungen werden
+  nie nachträglich in alte Antworten übernommen oder als aktueller Name angezeigt.
+- Liste/Detail zeigen `Label [feld_id]`; gleiche Labels verschiedener IDs bleiben
+  getrennt. Excel behält die bisherigen Spalten/Positionen und ergänzt bei
+  Snapshots eigentümerspezifische `Field label [id]`-Spalten (pro Antwort), auch
+  gemischt alt/neu; Legacy-Export ohne Snapshots behält die alte Spaltenform.
+  Alle Zellen bleiben Literalstrings, Limits zählen die Zusatzspalten mit.
+- Fehlgeschlagener Snapshot-Write liefert ehrlichen `adf_label_snapshot_failed`
+  samt `submission_id`, ohne den bereits gespeicherten Originaldatensatz zu löschen.
+- TDD rot/grün: Snapshot/Scope, Accessor+ID-Fallback, Divi-Weitergabe, Listen-/
+  Detail-Caption, Excel-Spalten, Legacy-Spaltenform, Fehlerpfad, Trash/Restore-
+  Erhalt. PHPCS/Syntax/Version/Diff grün.
+- Installierter 0.10.0-ZIP (kein Symlink): `verify-adf.py --browser` exit 0 mit
+  **14 WP-Suiten** (+EMPTY_TRASH_DAYS=0), allen statischen Prüfungen und **sieben
+  Chromium-Suiten**; openpyxl bestätigt ID-Spalten, `Field label [id]`, doppelte
+  Labels, Rename-Historie, Legacy-ID-Fallback und unveränderte Originalwerte.
+  **19 Dateien** bytegleich Source/ZIP/Installation; SHA256
+  `69b7a77f94a27d6acf36670542c0afaf9ad470a0c8126feeb100216e39f5e818`.
+  Ausgabe: Scratch `adf-test/labels-verification.txt`. Screenshots 1280/768/390
+  visuell geprüft. SQLite AST, kein MySQL-Nachweis, keine Veröffentlichung.
+- Unabhängige Source-Reviews `deleg_cfb20fda` und `deleg_8a59316e`: beide
+  `passed=true`, `security_concerns`/`logic_errors` leer, echte Diff- und
+  Datei-Leseaufrufe im Live-Transkript geprüft. Keine blockierenden Befunde.
 
 ### 6. Datenschutz, Aufbewahrung und gezielte Berechtigungen
 - [ ] Aufbewahrungsfristen explizit konfigurierbar und standardmäßig AUS; Aktivierung

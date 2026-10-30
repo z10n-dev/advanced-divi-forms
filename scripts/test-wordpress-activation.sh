@@ -70,6 +70,7 @@ wp_test eval-file "$(dirname "$(realpath "$0")")/../tests/submission-filters.php
 wp_test eval-file "$(dirname "$(realpath "$0")")/../tests/submission-trash.php"
 wp_test --exec='define("EMPTY_TRASH_DAYS",0);' eval-file "$(dirname "$(realpath "$0")")/../tests/submission-trash.php"
 wp_test eval-file "$(dirname "$(realpath "$0")")/../tests/submission-export.php"
+wp_test eval-file "$(dirname "$(realpath "$0")")/../tests/submission-labels.php"
 wp_test eval-file "$(dirname "$(realpath "$0")")/../tests/divi-integration.php"
 wp_test eval-file "$(dirname "$(realpath "$0")")/../tests/divi-discovery.php"
 
