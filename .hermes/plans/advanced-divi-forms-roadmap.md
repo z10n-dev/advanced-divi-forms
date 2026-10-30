@@ -78,17 +78,17 @@ in eigener Wegwerfinstallation korrigiert dies; kein Produktions-Workaround im
 Plugin. Weiterhin kein MySQL-/lizenzierter Divi-/Live-SMTP-Nachweis, kein Release.
 
 ### 3. Wiederherstellbarer Papierkorb
-- [ ] Normales Löschen in Liste, Detail und Mehrfachaktion verschiebt in Papierkorb.
-- [ ] Papierkorb separat ansehen und einzelne/mehrere Einsendungen wiederherstellen.
-- [ ] Endgültige Löschung ist eine getrennte, ausdrücklich bestätigte Aktion;
+- [x] Normales Löschen in Liste, Detail und Mehrfachaktion verschiebt in Papierkorb.
+- [x] Papierkorb separat ansehen und einzelne/mehrere Einsendungen wiederherstellen.
+- [x] Endgültige Löschung ist eine getrennte, ausdrücklich bestätigte Aktion;
       Wiederherstellen bewahrt Originalfelder, Notizen, Status und Formularbezug.
-- [ ] Standardliste und Standardexport schließen Papierkorb aus; Zähler und Filter
+- [x] Standardliste und Standardexport schließen Papierkorb aus; Zähler und Filter
       stimmen. Bestehende Datensätze werden nicht automatisch gelöscht.
-- [ ] WordPress-Core-Autobereinigung darf die vereinbarte explizite Löschgrenze nicht
+- [x] WordPress-Core-Autobereinigung darf die vereinbarte explizite Löschgrenze nicht
       unbemerkt umgehen; Verhalten dokumentieren und testen.
 Dateien: Submission-Controller/Abfragen/UI/Export und neue Tests, keine Live-Daten.
 
-Zwischenstand Iteration 3 (noch NICHT abgehakt/committed):
+Beleg Iteration 3: Commit `a603f92373849afc1f26371c1c1b3a7ec7b9000e` (0.8.0).
 - Neue `includes/submission-trash.php` und `tests/submission-trash.php`.
   `trash`/`restore` erhalten Felder, Notiz, Lesestatus und Formularbezug;
   Restore erzwingt private statt WordPress-Default draft.
@@ -119,19 +119,52 @@ Zwischenstand Iteration 3 (noch NICHT abgehakt/committed):
   `e565c7a8bdd3d58401851d99f5115d9d31997d6c276a78e732278a7b4960ee37`.
   Ausgabe: Scratch `adf-test/trash-verification.txt`. Eigene Fixtures bereinigt,
   Site wieder wordpress.test, SQLite AST; kein MySQL-Nachweis und kein Release.
-- OFFEN: Unabhängiges Review `deleg_66aff518` übernehmen/verifizieren, Commit und
-  finale Abhakung. Implementierung/Regressionen/ZIP sind geprüft, noch uncommitted.
-- Read-only-Vorbereitung für Iteration4: `deleg_021f962b` (Ergebnis noch nicht
-  übernommen). Keine Veröffentlichung, keine Produktivdaten berührt.
+- Abgeschlossen: unabhängige Source-Reviews `deleg_66aff518` und `deleg_2421c8ed`
+  ohne verwertbare Befunde. Vollständiges zweites Review-Artefakt
+  Scratch `adf-test/review-trash.json` und reale Source-Read-Toolaufrufe verifiziert.
+  Alle Kriterien und unveränderter installierter ZIP vor Commit gegengeprüft.
+- Vorbereitung Iteration4 `deleg_021f962b` verworfen: kein tatsächlicher
+  Source-Toolaufruf und nur vermutete Namen. Hauptagent hat `mail-templates.php`
+  selbst vollständig gelesen: vorhandener Saved-Preview-iframe mit Sandbox/CSP;
+  keine AJAX-Testdatenvorschau. Erster Pure-Renderer-Test in Scratch
+  `adf-test/preview-contract.php` ist bereits gezielt rot. Keine Veröffentlichung.
 
 ### 4. Template-Vorschau und Platzhalterhilfe
-- [ ] Vorschau mit frei eingegebenen Testdaten, ohne irgendeine Mail zu versenden.
-- [ ] Verfügbare Feld-Platzhalter und `{{form.summary}}` im Editor sichtbar und
+- [x] Vorschau mit frei eingegebenen Testdaten, ohne irgendeine Mail zu versenden.
+- [x] Verfügbare Feld-Platzhalter und `{{form.summary}}` im Editor sichtbar und
       einfügbar; fehlende/unbekannte IDs verständlich anzeigen.
-- [ ] Vorschau führt weiterhin weder Skripte, PHP, Shortcodes noch externe Requests
+- [x] Vorschau führt weiterhin weder Skripte, PHP, Shortcodes noch externe Requests
       aus. Testdaten werden nicht als echte Einsendung gespeichert.
-- [ ] Rendering bleibt escaped, nicht rekursiv, Body-/Attributgrenzen bleiben sicher.
+- [x] Rendering bleibt escaped, nicht rekursiv, Body-/Attributgrenzen bleiben sicher.
 Dateien: `includes/mail-templates.php`, Editor-Assets und Tests/README.
+
+Beleg Iteration 4 (0.9.0), Verifikation vollständig abgeschlossen:
+- Reiner Renderer plus geschützte, synthetische POST/AJAX-Vorschau und echte
+  CodeMirror-/Betreff-Platzhalterbuttons. Keine Speicherung von Testdaten;
+  fehlende/unbekannte/Attribut-Tokens und body-only Summary werden erläutert.
+- Rot/grün belegt für Pure-API, JSON-Parser, Controller, Editor-Controls,
+  zitierte `>` sowie doppelte/unvollständige Attribute und deren Save-/KSES-Pfad.
+  Ein konservativer lexikalischer Text-/Markup-Scanner schützt diese Grenzen;
+  Ersetzungswerte werden nicht erneut geparst. Expansion vorab größenbegrenzt.
+- PHP-/Shortcode-/Script-Proben sowie Mail-, HTTP- und Speicherfallen grün.
+  Chromium bestätigt echte Einfügung, fehlende/unbekannte IDs, leeren Sandbox-
+  Origin, nicht rekursive Inhalte, null externe Vorschauabrufe und unveränderte
+  gespeicherte Template-/Einsendungsdaten auf 1280/768/390px.
+- Installierter ZIP, kein Symlink: `python3 .../adf-test/verify-adf.py --browser`
+  exit 0: **13 WP-Suiten** plus EMPTY_TRASH_DAYS=0, Syntax/PHPCS/Version/Updater/
+  Divi-JS/beide JS-Syntaxprüfungen/Diff und **sechs Chromium-Suiten**, openpyxl
+  eingeschlossen. **19 Dateien** bytegleich Source/ZIP/Installation; SHA256
+  `973f183f3318385e6c1d0e5a07f6a913657829f5bc89fee03409d134140ea5d2`.
+  Vollständige Ausgabe: Scratch `adf-test/preview-verification.txt`.
+- Desktop/Mobil-Screenshots visuell geprüft. Über-Viewport-Screenshots können
+  Chromium-Opaque-Iframe-Layer auslassen; zusätzliche sichtbare Viewportaufnahmen
+  nach Scroll/Paint zeigen den tatsächlichen Inhalt. Kein Produktfix nötig.
+  Letzter gezielter Browserlauf mit diesen Aufnahmen ebenfalls exit 0.
+- Eigene Fixtures entfernt, Site wieder wordpress.test. SQLite AST, kein MySQL-
+  oder Live-SMTP-Nachweis; keine Veröffentlichung. Unabhängiges Read-only-Review
+  `deleg_a204b3da`: passed=true, security_concerns/logic_errors leer. Reale
+  Source-Reads und Working-Diff-Kommandos im Live-Transkript geprüft; keine
+  blockierenden Befunde. Letzte Browseränderung ergänzt nur Scroll/Paint-Aufnahmen.
 
 ### 5. Lesbare Feldbeschriftungen mit historischem Snapshot
 - [ ] Beim Eingang stabile Feld-ID plus verfügbare Beschriftung separat speichern;

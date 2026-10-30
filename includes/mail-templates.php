@@ -81,6 +81,16 @@ function adf_register_mail_templates() {
  * @return string
  */
 function adf_sanitize_email_html( $html ) {
+	// Strip dynamic tokens from their original tag context before KSES can repair
+	// malformed/quoted markup into plain body text during a save or preview.
+	$html             = adf_map_html_regions(
+		$html,
+		static function ( $text ) {
+			return $text; },
+		static function ( $markup ) {
+			return preg_replace( '/\{\{(?:fields\.[a-zA-Z0-9_-]+|form\.summary)\}\}/', '', $markup );
+		}
+	);
 	$html             = preg_replace( '@<(script|style)\b[^>]*>.*?</\1\s*>@si', '', $html );
 	$allowed          = wp_kses_allowed_html( 'post' );
 	$allowed['html']  = array(
@@ -121,26 +131,49 @@ function adf_add_template_meta_boxes() {
  * @return void
  */
 function adf_render_template_fields( $post ) {
+	adf_require_admin();
+	if ( 'adf_mail_template' !== $post->post_type || ! current_user_can( 'edit_post', $post->ID ) ) {
+		wp_die( esc_html__( 'The template is not available.', 'advanced-divi-forms' ), '', array( 'response' => 404 ) );
+	}
 	$subject = get_post_meta( $post->ID, '_adf_subject', true );
 	$html    = get_post_meta( $post->ID, '_adf_html', true );
-	// No scripts, network requests, forms or navigation to the parent are allowed.
-	$preview = '<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; style-src \'unsafe-inline\'; img-src data:; base-uri \'none\'; form-action \'none\'">' . adf_sanitize_email_html( $html );
+	$preview = adf_preview_document( is_string( $html ) ? $html : '' );
+	$sample  = array(
+		'name'    => 'Example Name',
+		'email'   => 'example@example.org',
+		'message' => 'Example message',
+	);
+	$tokens  = array( '{{form.summary}}' );
+	foreach ( array_keys( $sample ) as $id ) {
+		$tokens[] = '{{fields.' . $id . '}}';
+	}
 	wp_nonce_field( 'adf_save_template', 'adf_template_nonce' );
 	?>
 	<p><strong><?php esc_html_e( 'Template ID:', 'advanced-divi-forms' ); ?></strong> <?php echo esc_html( $post->ID ); ?></p>
-	<p>
-		<label for="adf-template-subject"><strong><?php esc_html_e( 'Subject', 'advanced-divi-forms' ); ?></strong></label>
-		<input class="widefat" id="adf-template-subject" name="adf_subject" type="text" value="<?php echo esc_attr( $subject ); ?>">
-	</p>
+	<p><label for="adf-template-subject"><strong><?php esc_html_e( 'Subject', 'advanced-divi-forms' ); ?></strong></label>
+		<input class="widefat" id="adf-template-subject" name="adf_subject" type="text" value="<?php echo esc_attr( $subject ); ?>"></p>
 	<p><label for="adf-template-html"><strong><?php esc_html_e( 'HTML Content', 'advanced-divi-forms' ); ?></strong></label></p>
 	<textarea class="widefat code" id="adf-template-html" name="adf_html" rows="20" aria-describedby="adf-template-help"><?php echo esc_textarea( $html ); ?></textarea>
-	<p id="adf-template-help">
-		<?php esc_html_e( 'Use inline CSS. Scripts, style blocks and unsafe HTML are removed when saving. Placeholders such as {{fields.name}} use stable field IDs and belong in text content, not HTML attributes. Missing fields become empty text. Insert {{form.summary}} on its own line in the HTML body for a table of all submitted fields.', 'advanced-divi-forms' ); ?>
-	</p>
-	<p><?php esc_html_e( 'Publish this template, then select it in the Divi 5 Contact Form Email settings. Saving a template does not send email. Reload the Visual Builder after adding or publishing templates.', 'advanced-divi-forms' ); ?></p>
-	<h2><?php esc_html_e( 'Saved Preview', 'advanced-divi-forms' ); ?></h2>
-	<p><?php esc_html_e( 'Save your changes to refresh the preview. External images are blocked in the preview for privacy.', 'advanced-divi-forms' ); ?></p>
-	<iframe title="<?php esc_attr_e( 'Email template preview', 'advanced-divi-forms' ); ?>" sandbox="" referrerpolicy="no-referrer" srcdoc="<?php echo esc_attr( $preview ); ?>" style="width:100%; min-height:350px; border:1px solid #c3c4c7; background:white;"></iframe>
+	<p id="adf-template-help"><?php esc_html_e( 'Use inline CSS. Scripts, style blocks and unsafe HTML are removed. Placeholders use stable Divi field IDs in text content, never tag names or attributes. Missing fields become empty text. {{form.summary}} is HTML-body-only.', 'advanced-divi-forms' ); ?></p>
+	<p><?php esc_html_e( 'Publish this template to select it in Divi. Saving and previewing do not send email. Preview test values are never stored as submissions.', 'advanced-divi-forms' ); ?></p>
+	<section class="adf-template-preview" aria-labelledby="adf-preview-heading">
+		<h2 id="adf-preview-heading"><?php esc_html_e( 'Test-data preview', 'advanced-divi-forms' ); ?></h2>
+		<p><label for="adf-preview-fields"><strong><?php esc_html_e( 'Synthetic field values (JSON)', 'advanced-divi-forms' ); ?></strong></label></p>
+		<textarea id="adf-preview-fields" name="adf_preview_fields" class="widefat code" rows="7" maxlength="50000" aria-describedby="adf-preview-help"><?php echo esc_textarea( wp_json_encode( $sample, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES ) ); ?></textarea>
+		<p id="adf-preview-help"><?php esc_html_e( 'Use only invented test values. Match the keys to your Divi field IDs. This helper lists IDs from these test values, not from real answers. Up to 50 fields and 50,000 JSON bytes. External resources and link navigation are disabled in the preview.', 'advanced-divi-forms' ); ?></p>
+		<p><label for="adf-insert-target"><?php esc_html_e( 'Insert placeholder into', 'advanced-divi-forms' ); ?></label>
+			<select id="adf-insert-target"><option value="html"><?php esc_html_e( 'HTML body', 'advanced-divi-forms' ); ?></option><option value="subject"><?php esc_html_e( 'Subject', 'advanced-divi-forms' ); ?></option></select></p>
+		<div id="adf-placeholder-buttons" class="adf-placeholder-buttons" aria-label="<?php esc_attr_e( 'Placeholders from test data', 'advanced-divi-forms' ); ?>">
+			<?php foreach ( $tokens as $token ) : ?>
+				<button type="button" class="button" data-adf-placeholder="<?php echo esc_attr( $token ); ?>" aria-controls="adf-template-html"><?php echo esc_html( $token ); ?></button>
+			<?php endforeach; ?>
+		</div>
+		<p><button type="button" class="button button-secondary" id="adf-preview-run" data-template-id="<?php echo esc_attr( $post->ID ); ?>" data-preview-nonce="<?php echo esc_attr( wp_create_nonce( 'adf_preview_template_' . $post->ID ) ); ?>"><?php esc_html_e( 'Render test-data preview', 'advanced-divi-forms' ); ?></button></p>
+		<p id="adf-preview-status" role="status" aria-live="polite"><?php esc_html_e( 'Showing saved HTML. Use the button to preview unsaved content with synthetic values; nothing is saved or sent.', 'advanced-divi-forms' ); ?></p>
+		<ul id="adf-preview-diagnostics" aria-live="polite"></ul>
+		<p><strong><?php esc_html_e( 'Rendered subject:', 'advanced-divi-forms' ); ?></strong> <span id="adf-preview-subject"><?php echo esc_html( $subject ); ?></span></p>
+		<iframe id="adf-template-preview" title="<?php esc_attr_e( 'Email template preview', 'advanced-divi-forms' ); ?>" sandbox="" referrerpolicy="no-referrer" srcdoc="<?php echo esc_attr( $preview ); ?>"></iframe>
+	</section>
 	<?php
 }
 
@@ -176,13 +209,29 @@ function adf_save_template_fields( $post_id ) {
  */
 function adf_enqueue_template_editor() {
 	$screen = get_current_screen();
-	if ( ! $screen || 'post' !== $screen->base || 'adf_mail_template' !== $screen->post_type ) {
+	if ( ! $screen || 'post' !== $screen->base || 'adf_mail_template' !== $screen->post_type || ! current_user_can( 'manage_options' ) ) {
 		return;
 	}
 	$settings = wp_enqueue_code_editor( array( 'type' => 'text/html' ) );
-	if ( $settings ) {
-		wp_add_inline_script( 'code-editor', 'jQuery(function(){wp.codeEditor.initialize("adf-template-html",' . wp_json_encode( $settings ) . ');});' );
-	}
+	wp_enqueue_script( 'adf-template-preview', plugins_url( 'assets/template-preview.js', ADF_PLUGIN_FILE ), array( 'jquery', 'code-editor' ), ADF_PLUGIN_VERSION, true );
+	wp_enqueue_style( 'adf-template-preview', plugins_url( 'assets/template-preview.css', ADF_PLUGIN_FILE ), array(), ADF_PLUGIN_VERSION );
+	wp_localize_script(
+		'adf-template-preview',
+		'adfTemplatePreviewSettings',
+		array(
+			'codeEditor' => $settings,
+			'ajaxUrl'    => admin_url( 'admin-ajax.php' ),
+			'strings'    => array(
+				'working'    => __( 'Rendering synthetic values without saving or sending…', 'advanced-divi-forms' ),
+				'done'       => __( 'Preview rendered. Nothing was saved and no email was sent.', 'advanced-divi-forms' ),
+				'failed'     => __( 'Preview failed. Check the test data and try again.', 'advanced-divi-forms' ),
+				'missing'    => __( 'Missing test-data fields:', 'advanced-divi-forms' ),
+				'unknown'    => __( 'Unsupported placeholders:', 'advanced-divi-forms' ),
+				'attributes' => __( 'Not expanded in HTML attributes:', 'advanced-divi-forms' ),
+				'bodyOnly'   => __( '{{form.summary}} is body-only and is not rendered in the subject.', 'advanced-divi-forms' ),
+			),
+		)
+	);
 }
 
 /**
@@ -218,28 +267,96 @@ function adf_render_mail_template( $template_id, array $fields, array $labels = 
 	if ( ! $template || 'adf_mail_template' !== $template->post_type || 'publish' !== $template->post_status ) {
 		return new WP_Error( 'adf_invalid_template', __( 'The mail template is not available.', 'advanced-divi-forms' ) );
 	}
+	return adf_render_template_content( get_post_meta( $template_id, '_adf_subject', true ), get_post_meta( $template_id, '_adf_html', true ), $fields, $labels );
+}
+
+/**
+ * Transform body text separately from complete, duplicate or unfinished markup.
+ *
+ * This is a conservative lexical boundary scanner, not an HTML evaluator. Quoted
+ * greater-than signs never end a tag; unfinished tags/comments consume the tail
+ * as markup, so no field value can be expanded there. Replacement output is not
+ * scanned again, preserving non-recursive field/summary rendering.
+ *
+ * @param string   $html   Input HTML.
+ * @param callable $text   Plain body-text transformer.
+ * @param callable $markup Tag/comment transformer, including incomplete tails.
+ * @return string
+ */
+function adf_map_html_regions( $html, $text, $markup ) {
+	$result   = '';
+	$cursor   = 0;
+	$position = 0;
+	$length   = strlen( $html );
+	while ( $position < $length ) {
+		$start = strpos( $html, '<', $position );
+		if ( false === $start ) {
+			break;
+		}
+		if ( $start + 1 >= $length || ! preg_match( '/[a-zA-Z!\/?{]/', $html[ $start + 1 ] ) ) {
+			$position = $start + 1;
+			continue;
+		}
+		$result .= $text( substr( $html, $cursor, $start - $cursor ) );
+		if ( '<!--' === substr( $html, $start, 4 ) ) {
+			$close = strpos( $html, '-->', $start + 4 );
+			$end   = false === $close ? $length : $close + 3;
+		} else {
+			$quote = null;
+			for ( $end = $start + 1; $end < $length; ++$end ) {
+				$character = $html[ $end ];
+				if ( null !== $quote ) {
+					if ( $character === $quote ) {
+						$quote = null; }
+				} elseif ( '"' === $character || "'" === $character ) {
+					$quote = $character;
+				} elseif ( '>' === $character ) {
+					++$end;
+					break;
+				}
+			}
+		}
+		$result  .= $markup( substr( $html, $start, $end - $start ) );
+		$cursor   = $end;
+		$position = $end;
+	}
+	return $result . $text( substr( $html, $cursor ) );
+}
+
+/**
+ * Render supplied content without reading a template, storing data or sending mail.
+ *
+ * @param string $subject Unsaved or saved template subject.
+ * @param string $html    Unsaved or saved HTML body.
+ * @param array  $fields  Synthetic or validated submitted values.
+ * @param array  $labels  Optional field labels.
+ * @return array|WP_Error Rendered content or a controlled content error.
+ */
+function adf_render_template_content( $subject, $html, array $fields, array $labels = array() ) {
+	if ( ! is_string( $subject ) || ! is_string( $html ) ) {
+		return new WP_Error( 'adf_invalid_template_content', __( 'Subject and HTML must be text.', 'advanced-divi-forms' ) );
+	}
 	$labels  = array_change_key_case( $labels, CASE_LOWER );
 	$fields  = array_change_key_case( $fields, CASE_LOWER );
 	$replace = static function ( $matches ) use ( $fields ) {
 		return adf_field_text( $fields[ strtolower( $matches[1] ?? '' ) ] ?? '' );
 	};
 	$pattern = '/\{\{(?:fields\.([a-zA-Z0-9_-]+)|(form\.summary))\}\}/';
-	$subject = preg_replace_callback( $pattern, $replace, get_post_meta( $template_id, '_adf_subject', true ) );
-	$html    = get_post_meta( $template_id, '_adf_html', true );
-	// Never substitute values into tag names or attribute contexts.
-	$html = preg_replace_callback(
-		'/<[^>]*>/s',
-		static function ( $matches ) use ( $pattern ) {
-			return preg_replace( $pattern, '', $matches[0] );
+	$subject = preg_replace_callback( $pattern, $replace, $subject );
+	$html    = adf_map_html_regions(
+		$html,
+		static function ( $text ) use ( $pattern, $replace, $fields, $labels ) {
+			return preg_replace_callback(
+				$pattern,
+				static function ( $matches ) use ( $replace, $fields, $labels ) {
+					return ! empty( $matches[2] ) ? adf_render_form_summary( $fields, $labels ) : esc_html( $replace( $matches ) );
+				},
+				$text
+			);
 		},
-		$html
-	);
-	$html = preg_replace_callback(
-		$pattern,
-		static function ( $matches ) use ( $replace, $fields, $labels ) {
-			return ! empty( $matches[2] ) ? adf_render_form_summary( $fields, $labels ) : esc_html( $replace( $matches ) );
-		},
-		$html
+		static function ( $markup ) use ( $pattern ) {
+			return preg_replace( $pattern, '', $markup );
+		}
 	);
 
 	$subject = sanitize_text_field( $subject );

@@ -60,6 +60,8 @@ WP_CLI::success( "Plugin activation and subsequent WordPress bootstrap passed." 
 # Exercise the installed release ZIP against real WordPress APIs.
 wp_test eval-file "$(dirname "$(realpath "$0")")/../tests/admin-integration.php"
 wp_test eval-file "$(dirname "$(realpath "$0")")/../tests/mail-summary.php"
+wp_test eval-file "$(dirname "$(realpath "$0")")/../tests/template-preview.php"
+wp_test eval-file "$(dirname "$(realpath "$0")")/../tests/template-preview-controller.php"
 wp_test eval-file "$(dirname "$(realpath "$0")")/../tests/github-update-integration.php"
 wp_test eval-file "$(dirname "$(realpath "$0")")/../tests/submission-actions.php"
 wp_test eval-file "$(dirname "$(realpath "$0")")/../tests/submission-controller.php"

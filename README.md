@@ -49,6 +49,36 @@ empty text. Labels and values are escaped, and placeholders inside submitted dat
 are never evaluated. `{{fields.all}}` still refers to an ordinary field with ID
 `all`; it is not an alias for the summary.
 
+### Safe previews with synthetic values
+
+In a draft or published Mail Template, enter invented values in **Synthetic field
+values (JSON)**, using the actual Divi field IDs as keys. Example:
+
+```json
+{"name":"Ada Example","email":"ada@example.org","choices":["A","B"]}
+```
+
+The helper lists `{{fields.ID}}` tokens from these keys and `{{form.summary}}`;
+it never imports real answers. Choose HTML body or Subject and click a token to
+insert it at the cursor. The summary always goes into the HTML body. Use
+**Render test-data preview** to render the current unsaved subject/HTML without
+publishing, saving a submission or calling any email transport. Preview values
+are not saved with the template. Do not use real personal data in test values.
+
+Diagnostics distinguish absent test-data IDs, unsupported expressions, tokens
+inside attributes, and body-only summaries in subjects. Add/fix test keys to
+match your Divi IDs. Values are plain text, escaped and never recursively expanded.
+Attribute/tag placeholders are removed before HTML repair, including duplicate or
+unfinished quoted tags. Preview scripts, PHP and shortcodes never execute.
+The iframe retains an empty sandbox and an offline CSP; images, links, forms and
+other external resources are disabled. This is a content preview, not proof of
+mail-client CSS support or actual SMTP delivery.
+
+Preview accepts a JSON object with at most 50 fields and 50,000 bytes, scalar
+values or flat multiselect arrays, and no case-insensitive ID collisions. Subject
+and HTML limits are 1,000 and 200,000 bytes; repeated-placeholder expansion is
+bounded before rendering (approximately 1 MiB). Errors leave stored content alone.
+
 ### Configure a Divi 5 contact form
 
 1. Create and publish templates under **Forms → Mail Templates**.
@@ -241,6 +271,12 @@ It also runs `tests/admin-integration.php` against the installed ZIP to check
 storage, pagination, template sanitization/rendering, permissions and answer actions.
 `tests/mail-summary.php` covers summary tables, labels, escaping, line breaks,
 multiselects, body-only placement and non-recursive substitution.
+`tests/template-preview.php` and `tests/template-preview-controller.php` cover
+pure unsaved rendering, synthetic-only inputs, POST/nonce/type/capability boundaries,
+resource limits and zero mail/network/storage calls. The optional real Chromium
+`tests/template-preview-browser.py` verifies CodeMirror insertion, diagnostics,
+opaque-origin sandboxing, no preview resource requests and unchanged stored data
+at 1280/768/390px. It uses a disposable draft-template/cookie fixture, never a live site.
 The submission action/controller/page/export suites check Quick Edit, bulk status
 and deletion, immutable original fields, nonce/capability enforcement, pagination,
 real XLSX packaging and the PclZip fallback. Tests use the PHP `zip` extension to
