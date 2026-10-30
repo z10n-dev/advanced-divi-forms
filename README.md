@@ -219,6 +219,69 @@ Inline editing and individual row selection work without JavaScript. JavaScript
 adds select-all, selection counts, Cancel/reset and conditional delete-confirmation
 controls. The wide table scrolls within the page on narrow screens.
 
+## Privacy, retention and access
+
+Answer storage is still **off by default**. When enabled, answers are private
+custom posts; only the capabilities below can read or change them.
+
+### Opt-in retention (default: OFF)
+
+Open **Forms → Privacy & Retention**. Nothing is deleted automatically until an
+administrator ticks the enable box **and** enters a period (1–3650 days). Saving
+with a period schedules one daily cleanup that permanently deletes answers older
+than that period, in batches of up to 200, including answers already in Trash.
+Forms, templates, settings and other post types are never deleted, and switching
+retention off removes the scheduled job. Upgrading or deactivating the plugin
+deletes nothing. The page shows the current state and the last run with its count.
+This is a deletion policy you must be able to justify in your own privacy notice;
+the plugin does not decide that for you.
+
+```sh
+# Example: inspect the configured state in a disposable site only.
+wp option get adf_retention_days
+wp option get adf_retention_last_run --format=json
+```
+
+### WordPress privacy export and erasure
+
+The plugin registers its own exporter and eraser, available under
+**Tools → Export Personal Data** and **Tools → Erase Personal Data**.
+
+Matching is exact and conservative. New receipts store the address that Divi
+validated for the email field in `_adf_email`. Legacy receipts without it qualify
+only when exactly one email-like field ID (for example `email`, `e-mail`,
+`email_address`) carries exactly one valid address. Anything ambiguous — two
+different valid addresses, no address, or a synthetic/unmatched value — is **not**
+assigned to the request. The export then states that older submissions could not
+be matched, and erasure reports them as retained for manual review instead of
+guessing. Erasure permanently deletes exactly the matched submissions, including
+matched answers in Trash; it never touches another person's record.
+
+### Dedicated submission capabilities
+
+Upgrading grants three new capabilities to the **administrator** role:
+
+- `adf_view_submissions` — open Forms and read stored answers
+- `adf_manage_submissions` — mark read/unread, edit the internal note, Trash,
+  restore and permanently delete answers
+- `adf_export_submissions` — download answers as Excel
+
+Administrators keep their previous access. Editors, authors and subscribers get
+**nothing** automatically; granting a capability is a deliberate administrator
+action through WordPress's role management (for example a small role-management
+plugin). The read-only view hides export, bulk and Quick Edit controls, and direct
+handlers still return 403 regardless of the interface.
+
+Kept strictly separate, still requiring `manage_options`:
+
+- Mail-template subject/HTML and the synthetic preview endpoint
+- Plugin settings, retention/deletion policy and update checks
+- Creating the capabilities above (and therefore the ability to grant them)
+
+A user with all three submission capabilities still cannot edit template HTML or
+change retention. This separation is covered by the role-matrix test and a real
+Chromium run.
+
 ### Historical field labels
 
 Validated Divi receipts now store available human labels separately in
@@ -295,6 +358,8 @@ It also runs `tests/admin-integration.php` against the installed ZIP to check
 storage, pagination, template sanitization/rendering, permissions and answer actions.
 `tests/mail-summary.php` covers summary tables, labels, escaping, line breaks,
 multiselects, body-only placement and non-recursive substitution.
+`tests/submission-privacy.php` covers retention defaults (off, no deletion), explicit enablement, bounded cleanup, exact/ambiguous/legacy email matching, exporter and eraser output, and capability-gated policy changes. `tests/submission-capabilities.php` covers the admin upgrade grant, no implicit editor access, read-only/export/manage separation, direct-handler rejections and template/settings isolation. `tests/submission-capabilities-browser.py` verifies the same role matrix in real Chromium with 403 responses and the admin privacy page at 1280/768/390px.
+
 `tests/template-preview.php` and `tests/template-preview-controller.php` cover
 pure unsaved rendering, synthetic-only inputs, POST/nonce/type/capability boundaries,
 resource limits and zero mail/network/storage calls. The optional real Chromium

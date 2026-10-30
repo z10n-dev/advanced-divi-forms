@@ -207,20 +207,62 @@ Beleg Iteration 5 (0.10.0), Arbeitsbaum verifiziert, Review/Commit ausstehend:
   Datei-Leseaufrufe im Live-Transkript geprüft. Keine blockierenden Befunde.
 
 ### 6. Datenschutz, Aufbewahrung und gezielte Berechtigungen
-- [ ] Aufbewahrungsfristen explizit konfigurierbar und standardmäßig AUS; Aktivierung
+- [x] Aufbewahrungsfristen explizit konfigurierbar und standardmäßig AUS; Aktivierung
       und Folgen klar beschrieben. Kein automatisches Löschen ohne konfigurierte
       Einwilligung. Tests nur mit synthetischen Wegwerfdaten.
-- [ ] Integration in WordPress-Personendatenexport und -löschung mit geprüfter,
+- [x] Integration in WordPress-Personendatenexport und -löschung mit geprüfter,
       eindeutiger E-Mail-Zuordnung; Fremddaten nie aufgrund einer Vermutung zuordnen.
       Legacy-Fälle ohne sichere Zuordnung transparent behandeln.
-- [ ] Eigene Berechtigung zum Lesen/Bearbeiten/Exportieren von Einsendungen, ohne
+- [x] Eigene Berechtigung zum Lesen/Bearbeiten/Exportieren von Einsendungen, ohne
       vollständige Administratorrechte vorauszusetzen; Vergabe nur durch Admins.
-- [ ] Template-HTML, Plugin-Einstellungen und Berechtigungsvergabe bleiben streng
+- [x] Template-HTML, Plugin-Einstellungen und Berechtigungsvergabe bleiben streng
       getrennt geschützt. Keine stillschweigende Vergabe an Editoren/Autoren.
-- [ ] Upgrade erhält bisherigen Adminzugriff; direkte Handler, Exporte, Vorschau,
+- [x] Upgrade erhält bisherigen Adminzugriff; direkte Handler, Exporte, Vorschau,
       Formulargrenzen und Rollenmatrix mit positiven/negativen Tests absichern.
 Dateien: neue Privacy/Retention/Capabilities-Module, bestehende Zugriffskontrollen,
 Bootstrap/ggf. Upgrade-Hooks, Tests und Dokumentation.
+
+Beleg Iteration 6 (0.11.0), Verifikation abgeschlossen, Review/Commit ausstehend:
+- `includes/submission-privacy.php`: `adf_retention_days()`/`adf_retention_enabled()`
+  (0 = AUS, Standard), `adf_save_retention_settings()` nur `manage_options` und nur
+  1–3650 Tage, `adf_sync_retention_schedule()`/Deaktivierungshook, tagesweiser
+  `adf_run_retention_cleanup()` in 200er-Stapeln ausschließlich `adf_submission`
+  (Active und Trash), letzter Lauf in `adf_retention_last_run`.
+- `includes/privacy-admin.php`: Seite **Forms → Privacy & Retention** mit
+  POST/Nonce, Warnhinweisen, Zustand und letztem Lauf; keine Rechte für
+  Einsendungsverwalter.
+- WordPress-Privacy: eigener Exporter und Eraser. Neue Belege speichern die von
+  Divi validierte Adresse in `_adf_email`; Altbestände nur bei genau einer
+  eindeutigen E-Mail-Feld-ID mit genau einer gültigen Adresse. Mehrdeutige/fehlende
+  Zuordnungen werden gemeldet und **nicht** exportiert/gelöscht. Löschung entfernt
+  exakt die Treffer (auch im Trash), meldet retained/resolved ehrlich.
+- `includes/submission-capabilities.php`: `adf_view_submissions`,
+  `adf_manage_submissions`, `adf_export_submissions`; Installation idempotent auf
+  `init` + Aktivierung, nur an die Administratorrolle. Menü/Liste nutzen view,
+  Mutationen manage, Exporte export; direkte Handler prüfen jeweils selbst.
+  Template-HTML, Einstellungen, Retention und Rechtevergabe bleiben
+  `manage_options`. Editoren/Autoren erhalten nichts automatisch.
+- UI-Gating: Leseberechtigte sehen Liste/Detail ohne Export-, Bulk- und
+  Quick-Edit-Steuerelemente; Administratoren behalten alles.
+- TDD rot/grün: Retention-Aus, ungültiges Aktivieren, gezielte Löschung,
+  Cron-Scheduling, Editor-Verbot, Capability-Matrix inkl. direkter Handler und
+  Template-Isolation, Exporter/Eraser inkl. Legacy-Mehrdeutigkeit und Cross-Person.
+- Installierter 0.11.0-ZIP: `verify-adf.py --browser` exit 0 mit **16 WP-Suiten**
+  (+EMPTY_TRASH_DAYS=0), Syntax/PHPCS/Version/Updater/Divi-JS/JS-Syntax/Diff und
+  **acht Chromium-Suiten** (openpyxl, Rollenmatrix, echte 403, Retention-Speichern,
+  1280/768/390). **22 Dateien** bytegleich Source/ZIP/Installation; SHA256
+  `0c00a2909db55bedde32b2cc0ca748f2007e56fbfdaabd06872c2e1be126b1f9`.
+  Ausgabe: Scratch `adf-test/privacy-verification.txt`. Screenshots visuell geprüft.
+- Eigener adversarialer Durchgang fand einen echten Fehler: ein negativer/
+  korrupter `adf_retention_days`-Wert wurde per `absint()` zu einem kurzen
+  Löschfenster. Test zuerst rot, dann behoben: ungültige Werte bedeuten jetzt AUS
+  (nur 1–3650 aktiv). Danach ZIP/Installation/SHA neu verifiziert.
+- Unabhängige Source-Reviews `deleg_4f6e7d5f` (14 echte Toolaufrufe) und
+  `deleg_c2a52819` (8 echte Toolaufrufe): beide `passed=true`, keine Sicherheits-
+  oder Logikbefunde. Ein dritter Reviewversuch ohne jeden Toolaufruf wurde als
+  ungültig verworfen und nicht gewertet.
+- Eigene Fixtures entfernt, Retention auf Aus zurückgesetzt, Site wieder
+  wordpress.test. SQLite AST, kein MySQL-Nachweis, keine Veröffentlichung.
 
 ## Arbeitsweise je Iteration
 

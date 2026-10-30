@@ -21,7 +21,7 @@ add_action( 'admin_post_adf_manage_submissions', 'adf_manage_submissions' );
  * @return int|WP_Error Number of processed records or an error.
  */
 function adf_apply_submission_action( $form_id, array $ids, $action, array $options = array() ) {
-	if ( ! current_user_can( 'manage_options' ) ) {
+	if ( ! adf_can_manage_submissions() ) {
 		return new WP_Error( 'adf_forbidden', __( 'You are not allowed to manage submissions.', 'advanced-divi-forms' ) );
 	}
 	$form = get_post( $form_id );
@@ -85,7 +85,7 @@ function adf_apply_submission_action( $form_id, array $ids, $action, array $opti
  * @return void
  */
 function adf_manage_submissions() {
-	adf_require_admin();
+	adf_require_submission_capability( 'manage' );
 	if ( ! isset( $_SERVER['REQUEST_METHOD'] ) || 'post' !== sanitize_key( wp_unslash( $_SERVER['REQUEST_METHOD'] ) ) ) {
 		wp_die( esc_html__( 'Use a POST request for submission actions.', 'advanced-divi-forms' ), '', array( 'response' => 405 ) );
 	}

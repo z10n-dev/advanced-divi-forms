@@ -127,6 +127,33 @@ function adf_field_text( $value ) {
 }
 
 /**
+ * Resolve one verified address: the caller's validated value wins, otherwise
+ * exactly one distinct valid address across email-like field IDs. Ambiguity
+ * returns an empty string rather than assigning the wrong person's data.
+ *
+ * @param array  $fields Sanitized field values keyed by stable ID.
+ * @param string $email  Optional address already validated by the caller.
+ * @return string Normalised address or ''.
+ */
+function adf_resolve_fields_email( array $fields, $email = '' ) {
+	$email = is_string( $email ) ? strtolower( trim( $email ) ) : '';
+	if ( is_email( $email ) ) {
+		return $email;
+	}
+	$candidates = array();
+	foreach ( $fields as $key => $value ) {
+		if ( ! preg_match( '/(^|[_-])e-?mail([_-]|$)/i', (string) $key ) || ! is_scalar( $value ) ) {
+			continue;
+		}
+		$value = strtolower( trim( (string) $value ) );
+		if ( is_email( $value ) ) {
+			$candidates[ $value ] = true;
+		}
+	}
+	return 1 === count( $candidates ) ? (string) array_key_first( $candidates ) : '';
+}
+
+/**
  * Read historical labels only; never infer them from a newer form definition.
  *
  * @param int $submission_id Stored submission ID, already authorized by caller.
@@ -164,12 +191,13 @@ function adf_submission_field_title( $submission_id, $key, ?array $labels = null
  * The caller must validate the submission and spam/consent checks first.
  * Field keys are stable IDs, not labels. No IP or user-agent is collected.
  *
- * @param int   $form_id Registered form ID.
- * @param array $fields  Map of field IDs to submitted values.
- * @param array $labels  Optional field-ID label snapshot; does not alter fields.
+ * @param int    $form_id Registered form ID.
+ * @param array  $fields  Map of field IDs to submitted values.
+ * @param array  $labels  Optional field-ID label snapshot; does not alter fields.
+ * @param string $email  Optional already validated address for exact privacy matching.
  * @return int|WP_Error
  */
-function adf_store_submission( $form_id, array $fields, array $labels = array() ) {
+function adf_store_submission( $form_id, array $fields, array $labels = array(), $email = '' ) {
 	$form = $form_id ? get_post( absint( $form_id ) ) : null;
 	if ( ! $form || 'adf_form' !== $form->post_type || 'private' !== $form->post_status ) {
 		return new WP_Error( 'adf_invalid_form', __( 'The form does not exist.', 'advanced-divi-forms' ) );
@@ -191,6 +219,7 @@ function adf_store_submission( $form_id, array $fields, array $labels = array() 
 				$clean_labels[ $key ] = $label; }
 		}
 	}
+	$clean_email = adf_resolve_fields_email( $clean_fields, $email );
 	if ( ! $clean_fields ) {
 		return new WP_Error( 'adf_empty_submission', __( 'The submission contains no fields.', 'advanced-divi-forms' ) );
 	}
@@ -205,6 +234,7 @@ function adf_store_submission( $form_id, array $fields, array $labels = array() 
 				'meta_input'  => array(
 					'_adf_fields'       => $clean_fields,
 					'_adf_field_labels' => $clean_labels,
+					'_adf_email'        => $clean_email,
 					'_adf_read'         => 0,
 				),
 			)

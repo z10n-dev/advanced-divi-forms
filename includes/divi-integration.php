@@ -392,20 +392,20 @@ function adf_divi_form_submitted( $fields, $has_error, $info ) {
 			$labels[ $key ] = adf_field_text( $field['label'] ?? '' );
 		}
 	}
-	$attrs = $context['attrs'];
-	if ( 'on' === adf_divi_setting( $attrs, 'storeSubmissions', 'off' ) ) {
-		$result = adf_store_submission( $context['form_id'], $values, $labels );
-		if ( is_wp_error( $result ) ) {
-			update_post_meta( $context['form_id'], '_adf_storage_error', $result->get_error_message() );
-		} else {
-			delete_post_meta( $context['form_id'], '_adf_storage_error' );
-		}
-	}
+	$attrs     = $context['attrs'];
 	$email_key = strtolower( adf_divi_setting( $attrs, 'confirmationEmailField', 'email' ) );
 	$email_key = '' !== $email_key ? $email_key : 'email';
 	$email     = $values[ $email_key ] ?? '';
 	if ( 'email' !== ( $fields[ $email_key ]['type'] ?? '' ) || preg_match( '/[\r\n]/', $email ) || ! is_email( $email ) ) {
 		$email = '';
+	}
+	if ( 'on' === adf_divi_setting( $attrs, 'storeSubmissions', 'off' ) ) {
+		$result = adf_store_submission( $context['form_id'], $values, $labels, $email );
+		if ( is_wp_error( $result ) ) {
+			update_post_meta( $context['form_id'], '_adf_storage_error', $result->get_error_message() );
+		} else {
+			delete_post_meta( $context['form_id'], '_adf_storage_error' );
+		}
 	}
 	$GLOBALS['adf_divi_pending_mail'] = array(
 		'form_id'      => $context['form_id'],

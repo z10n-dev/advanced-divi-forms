@@ -22,7 +22,7 @@ function adf_register_admin_menu() {
 	add_menu_page(
 		__( 'Advanced Divi Forms', 'advanced-divi-forms' ),
 		__( 'Forms', 'advanced-divi-forms' ),
-		'manage_options',
+		'adf_view_submissions',
 		'advanced-divi-forms',
 		'adf_render_forms_page',
 		'dashicons-feedback'
@@ -31,7 +31,7 @@ function adf_register_admin_menu() {
 		'advanced-divi-forms',
 		__( 'All Forms', 'advanced-divi-forms' ),
 		__( 'All Forms', 'advanced-divi-forms' ),
-		'manage_options',
+		'adf_view_submissions',
 		'advanced-divi-forms',
 		'adf_render_forms_page',
 		0
@@ -44,7 +44,7 @@ function adf_register_admin_menu() {
  * @return void
  */
 function adf_require_admin() {
-	if ( ! current_user_can( 'manage_options' ) ) {
+	if ( ! adf_can_view_submissions() ) {
 		wp_die(
 			esc_html__( 'You are not allowed to access this page.', 'advanced-divi-forms' ),
 			'',
@@ -347,23 +347,25 @@ function adf_render_submission( $form, $submission ) {
 			<?php endforeach; ?>
 			</tbody>
 		</table>
+		<?php if ( adf_can_manage_submissions() ) : ?>
 		<form class="adf-submission-actions" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
-			<input type="hidden" name="action" value="adf_update_submission">
-			<input type="hidden" name="submission_id" value="<?php echo esc_attr( $submission->ID ); ?>">
-			<input type="hidden" name="return_page" value="<?php echo esc_attr( $page ); ?>">
+		<input type="hidden" name="action" value="adf_update_submission">
+		<input type="hidden" name="submission_id" value="<?php echo esc_attr( $submission->ID ); ?>">
+		<input type="hidden" name="return_page" value="<?php echo esc_attr( $page ); ?>">
 			<?php adf_render_submission_filter_fields( $filters ); ?>
 			<?php wp_nonce_field( 'adf_submission_' . $submission->ID ); ?>
 			<?php if ( ! $in_trash && ! get_post_meta( $submission->ID, '_adf_read', true ) ) : ?>
-				<div class="adf-single-status-action"><?php submit_button( __( 'Mark as read', 'advanced-divi-forms' ), 'secondary', 'adf_mark_read', false ); ?></div>
-			<?php endif; ?>
+		<div class="adf-single-status-action"><?php submit_button( __( 'Mark as read', 'advanced-divi-forms' ), 'secondary', 'adf_mark_read', false ); ?></div>
+		<?php endif; ?>
 			<?php if ( $in_trash ) : ?>
-				<div class="adf-single-status-action"><?php submit_button( __( 'Restore submission', 'advanced-divi-forms' ), 'secondary', 'adf_restore', false ); ?></div>
-			<p class="adf-delete-confirm"><label><input type="checkbox" name="adf_confirm_delete" value="1"><span><?php esc_html_e( 'I confirm that this submission should be permanently deleted.', 'advanced-divi-forms' ); ?></span></label></p>
+		<div class="adf-single-status-action"><?php submit_button( __( 'Restore submission', 'advanced-divi-forms' ), 'secondary', 'adf_restore', false ); ?></div>
+		<p class="adf-delete-confirm"><label><input type="checkbox" name="adf_confirm_delete" value="1"><span><?php esc_html_e( 'I confirm that this submission should be permanently deleted.', 'advanced-divi-forms' ); ?></span></label></p>
 				<?php submit_button( __( 'Delete permanently', 'advanced-divi-forms' ), 'delete adf-button-danger', 'adf_delete', false ); ?>
-			<?php else : ?>
-				<?php submit_button( __( 'Move to Trash', 'advanced-divi-forms' ), 'delete adf-button-danger', 'adf_trash', false ); ?>
-			<?php endif; ?>
+		<?php else : ?>
+			<?php submit_button( __( 'Move to Trash', 'advanced-divi-forms' ), 'delete adf-button-danger', 'adf_trash', false ); ?>
+		<?php endif; ?>
 		</form>
+		<?php endif; ?>
 	</div>
 	<?php
 }

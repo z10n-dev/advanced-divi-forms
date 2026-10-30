@@ -112,7 +112,7 @@ function adf_package_submission_xlsx( $sheet, $use_native = true ) {
  * @return string|WP_Error Private XLSX temporary path or a controlled error.
  */
 function adf_create_submission_export( $form_id, array $ids = array(), array $filters = array() ) {
-	if ( ! current_user_can( 'manage_options' ) ) {
+	if ( ! adf_can_export_submissions() ) {
 		return new WP_Error( 'adf_export_forbidden', __( 'You are not allowed to export submissions.', 'advanced-divi-forms' ) );
 	}
 	$form = $form_id ? get_post( $form_id ) : null;
@@ -223,7 +223,7 @@ function adf_create_submission_export( $form_id, array $ids = array(), array $fi
  * @return void
  */
 function adf_send_submission_export( $file, $form_id ) {
-	adf_require_admin();
+	adf_require_submission_capability( 'export' );
 	if ( empty( $GLOBALS['adf_private_exports'][ $file ] ) || ! is_file( $file ) ) {
 		wp_die( esc_html__( 'The export file is not available.', 'advanced-divi-forms' ), '', array( 'response' => 400 ) );
 	}
@@ -250,7 +250,7 @@ function adf_send_submission_export( $file, $form_id ) {
  * @return void
  */
 function adf_export_submissions() {
-	adf_require_admin();
+	adf_require_submission_capability( 'export' );
 	if ( ! isset( $_SERVER['REQUEST_METHOD'] ) || 'post' !== sanitize_key( wp_unslash( $_SERVER['REQUEST_METHOD'] ) ) ) {
 		wp_die( esc_html__( 'Use a POST request to export submissions.', 'advanced-divi-forms' ), '', array( 'response' => 405 ) );
 	}
