@@ -264,6 +264,33 @@ Beleg Iteration 6 (0.11.0), Commit `76e227926abf0359623d9cc244119bf0a13f0159`:
 - Eigene Fixtures entfernt, Retention auf Aus zurückgesetzt, Site wieder
   wordpress.test. SQLite AST, kein MySQL-Nachweis, keine Veröffentlichung.
 
+### 7. Härtung vor einem Stable-Release (0.12.0)
+- [x] Divi-Guard: erkannter Theme-Name und Version, Warnung für Administratoren
+      ohne Divi 5.16+, Statuszeile auf **Forms → Updates**; keine stille
+      Funktionslosigkeit mehr.
+- [x] `uninstall.php` + getestetes Modul: Einstellungen, Updater-Status, Caches,
+      Discovery-Transients, Retention-Event und die drei Capabilities werden
+      entfernt; Antworten, Formulare und Templates bleiben, außer
+      `ADF_DELETE_ALL_DATA_ON_UNINSTALL` ist gesetzt. Multisite-Schleife über alle
+      Sites.
+- [x] CI-Matrix: derselbe getestete ZIP auf WordPress 6.2/6.7/latest mit PHP 8.2,
+      plus 8.3/8.4 auf den neueren Releases; Release-Job benötigt `validate` UND
+      `compat`.
+- [x] Volumen-/Grenztest: mehrere hundert Antworten, exakte Filterzahlen,
+      Mitternachtsgrenze in Ortszeit, Export-Zeilenzahl und keine N+1-Abfragen.
+- [x] `CHANGELOG.md`, README-Abschnitte zu Voraussetzungen, Support und
+      Deinstallation.
+- [x] Version 0.12.0 in Header und `ADF_PLUGIN_VERSION`.
+- Beleg: installierter 0.12.0-ZIP (kein Symlink), `verify-adf.py --browser` exit 0:
+      **19 WordPress-Suiten** inklusive `divi-support`, `submission-volume` und
+      `uninstall`, alle statischen Prüfungen und **acht Chromium-Suiten**;
+      **25 Dateien** bytegleich Source/ZIP/Installation, SHA256
+      `ce7d0a3888049ff5c2d3c2ce48cf2033bd83698a36f0ea8e817176b5047a1d11`.
+      SQLite AST, kein lokaler MySQL-Lauf; die Matrix selbst belegt erst CI.
+- Ausdrücklich offen: lizenzierter Divi-Live-Lauf, echter SMTP-Versand,
+      Multisite-Verhalten (Code vorhanden, nicht ausgeführt), Übersetzungen und
+      Barrierefreiheit der Admin-UI.
+
 ## Arbeitsweise je Iteration
 
 1. Relevante Skills laden; Istzustand und Datenfluss lesen, enge Reproduktion bzw.

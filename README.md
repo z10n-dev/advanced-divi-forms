@@ -5,6 +5,20 @@ contact forms, with **GitHub Releases → native WordPress auto-updates**.
 The integration is verified against the locally supplied **Divi 5.16.0** source.
 Without a selected template, the native recipient email remains unchanged.
 
+## Requirements and support
+
+- Divi **5.16.0 or newer**, tested against 5.16.0. Without Divi, or on Divi 4, the
+  plugin stores and sends nothing: administrators get a warning notice and the
+  **Forms → Updates** page reports the version it detected.
+- WordPress **6.2 or newer** on PHP **8.2–8.4**. CI runs the same release ZIP
+  against WordPress 6.2, 6.7 and the latest release on PHP 8.2, and against PHP
+  8.3/8.4 on the newer releases.
+- Single-site installations. Settings are stored per site and the uninstall pass
+  walks every site of a network, but multisite is not covered by the automated
+  suites.
+- Not verified automatically: a licensed Divi editing session, real SMTP delivery
+  and live staging layouts. Test those on staging before deploying.
+
 ## Forms administration
 
 Administrators with `manage_options` have a **Forms** menu:
@@ -315,6 +329,24 @@ normally for other post types. This protection covers Core's automatic cleanup;
 trusted server-side code deliberately calling `wp_delete_post` with `force=true`
 can still delete records. Plugin deactivation does not remove data.
 
+## Uninstalling
+
+Deleting the plugin from the Plugins screen removes everything the plugin owns as
+*configuration*: the retention settings and run marker, the persisted updater
+status, its caches and discovery transients, the daily retention event, and the
+three dedicated submission capabilities from every role that held them.
+
+Stored answers, form records and mail templates are **kept**, because they are the
+site's content. To remove those as well, add this to `wp-config.php` before
+deleting the plugin:
+
+```php
+define( 'ADF_DELETE_ALL_DATA_ON_UNINSTALL', true );
+```
+
+Deactivating the plugin never deletes anything; it only unschedules the retention
+cleanup.
+
 ## Setup
 
 1. Push this repository to GitHub. Make it **public**: public GitHub release downloads require no credentials.
@@ -354,11 +386,23 @@ WordPress Coding Standards, and plugin versions. CI then builds the release ZIP
 and installs it with WP-CLI in a temporary installation of the latest stable
 WordPress, using PHP 8.2 and a disposable MySQL 8 database. It checks activation,
 a subsequent WordPress bootstrap, and the debug log for fatal PHP errors.
+A second job replays the **same artifact** on WordPress 6.2, 6.7 and the latest
+release (PHP 8.2) as well as PHP 8.3/8.4 on the newer releases; a release is
+published only after both jobs pass.
 It also runs `tests/admin-integration.php` against the installed ZIP to check
 storage, pagination, template sanitization/rendering, permissions and answer actions.
 `tests/mail-summary.php` covers summary tables, labels, escaping, line breaks,
 multiselects, body-only placement and non-recursive substitution.
 `tests/submission-privacy.php` covers retention defaults (off, no deletion), explicit enablement, bounded cleanup, exact/ambiguous/legacy email matching, exporter and eraser output, and capability-gated policy changes. `tests/submission-capabilities.php` covers the admin upgrade grant, no implicit editor access, read-only/export/manage separation, direct-handler rejections and template/settings isolation. `tests/submission-capabilities-browser.py` verifies the same role matrix in real Chromium with 403 responses and the admin privacy page at 1280/768/390px.
+
+`tests/divi-support.php` covers the Divi version classifier, the administrator
+warning (including escaping and capability gating) and the updates-page summary.
+`tests/submission-volume.php` seeds several hundred answers and checks filter
+counts, the local-midnight date boundary, the exported row count and that a
+filtered list page does not fan out into per-row queries. `tests/uninstall.php`
+proves that settings, the retention event and the dedicated capabilities are
+removed, that stored answers survive by default and that they are deleted only on
+the explicit opt-in.
 
 `tests/template-preview.php` and `tests/template-preview-controller.php` cover
 pure unsaved rendering, synthetic-only inputs, POST/nonce/type/capability boundaries,
@@ -412,5 +456,6 @@ the actual parser and contact handler. These tests cover nonce/captcha rejection
 HTML replacement, confirmation, anonymous storage and duplicate DOM coordination.
 Every outgoing email is intercepted; no test email is delivered. Licensed vendor
 source is not needed by public CI and is never bundled/uploaded. Visual Builder
-browser interaction, real SMTP delivery and the full version range are not
-automatically verified by these tests.
+browser interaction and real SMTP delivery are not automatically verified, and the
+compatibility job covers only the WordPress releases listed in
+`.github/workflows/ci-release.yml`, not every historical release.

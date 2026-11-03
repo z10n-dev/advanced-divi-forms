@@ -73,8 +73,13 @@ wp_test eval-file "$(dirname "$(realpath "$0")")/../tests/submission-export.php"
 wp_test eval-file "$(dirname "$(realpath "$0")")/../tests/submission-labels.php"
 wp_test eval-file "$(dirname "$(realpath "$0")")/../tests/submission-privacy.php"
 wp_test eval-file "$(dirname "$(realpath "$0")")/../tests/submission-capabilities.php"
+wp_test eval-file "$(dirname "$(realpath "$0")")/../tests/divi-support.php"
+wp_test eval-file "$(dirname "$(realpath "$0")")/../tests/submission-volume.php"
 wp_test eval-file "$(dirname "$(realpath "$0")")/../tests/divi-integration.php"
 wp_test eval-file "$(dirname "$(realpath "$0")")/../tests/divi-discovery.php"
+
+# Last: removal is destructive for plugin state, so it must not affect other suites.
+wp_test eval-file "$(dirname "$(realpath "$0")")/../tests/uninstall.php"
 
 # Optional local vendor test. The licensed source is never bundled or uploaded.
 if [[ -n "${ADF_DIVI_THEME_DIR:-}" ]]; then

@@ -98,6 +98,7 @@ function adf_render_update_status() {
 	$error  = isset( $status['error_message'] ) && is_string( $status['error_message'] ) ? $status['error_message'] : '';
 	$rows   = array(
 		__( 'Installed version', 'advanced-divi-forms' ) => ADF_PLUGIN_VERSION,
+		__( 'Divi integration', 'advanced-divi-forms' )  => adf_divi_support_summary(),
 		__( 'Latest stable version (last successful check)', 'advanced-divi-forms' ) => $latest ? $latest : __( 'Not checked successfully yet', 'advanced-divi-forms' ),
 		__( 'Last network attempt', 'advanced-divi-forms' ) => ! empty( $status['checked_at'] ) ? wp_date( 'Y-m-d H:i:s T', (int) $status['checked_at'] ) : '—',
 		__( 'Last successful check', 'advanced-divi-forms' ) => ! empty( $status['last_success_at'] ) ? wp_date( 'Y-m-d H:i:s T', (int) $status['last_success_at'] ) : '—',
