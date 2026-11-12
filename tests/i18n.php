@@ -92,6 +92,11 @@ try {
 	// state a German site is in, so the plugin's own catalogue has to load.
 	add_filter( 'locale', $force_locale, 99 );
 	adf_i18n_expect( 'de_DE' === get_locale(), 'The forced locale must be de_DE, got ' . get_locale() . '.' );
+	// WordPress 6.5+ caches the just-in-time load per domain and locale, so the
+	// domain has to be dropped before the German catalogue can be picked up.
+	if ( function_exists( 'unload_textdomain' ) ) {
+		unload_textdomain( 'advanced-divi-forms' );
+	}
 	adf_load_textdomain();
 	// WordPress 6.5+ loads translations just in time, so is_textdomain_loaded()
 	// can stay false until a string is requested; the translated string itself is

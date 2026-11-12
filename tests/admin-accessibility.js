@@ -53,6 +53,32 @@ const axeOptions = {
   resultTypes: ['violations'],
 };
 
+// WordPress core chrome outside the plugin's own screens. Core markup is not
+// something this plugin can fix, so its findings are reported but do not fail the
+// run. Everything inside #wpbody-content stays fully audited.
+const CORE_CHROME = ['#wpadminbar', '#adminmenu', '#collapse-button', '#wpfooter', '#screen-meta', '#screen-meta-links'];
+
+function isCoreChrome(node) {
+  return node.target.some((target) => {
+    const selector = Array.isArray(target) ? target.join(' ') : String(target);
+    return CORE_CHROME.some((core) => selector.startsWith(core));
+  });
+}
+
+function splitByOwnership(violations) {
+  const relevant = [];
+  const core = [];
+  for (const violation of violations) {
+    const nodes = violation.nodes.filter((node) => !isCoreChrome(node));
+    if (nodes.length) {
+      relevant.push({ ...violation, nodes });
+    } else {
+      core.push(violation);
+    }
+  }
+  return { relevant, core };
+}
+
 (async () => {
   const browser = await chromium.launch({ headless: true });
   const context = await browser.newContext();
@@ -75,9 +101,10 @@ const axeOptions = {
     }
     await page.addScriptTag({ path: axePath });
     const result = await page.evaluate(async (options) => window.axe.run(document, options), axeOptions);
-    const blocking = result.violations.filter((violation) => ['critical', 'serious'].includes(violation.impact));
-    const minor = result.violations.filter((violation) => !['critical', 'serious'].includes(violation.impact));
-    report.push({ label, url, blocking, minor });
+    const { relevant, core } = splitByOwnership(result.violations);
+    const blocking = relevant.filter((violation) => ['critical', 'serious'].includes(violation.impact));
+    const minor = relevant.filter((violation) => !['critical', 'serious'].includes(violation.impact));
+    report.push({ label, url, blocking, minor, core });
     if (blocking.length) {
       failed += 1;
       console.error(`FAIL ${label}: ${blocking.length} serious/critical violation(s)`);
@@ -88,10 +115,13 @@ const axeOptions = {
         }
       }
     } else {
-      console.log(`PASS ${label} (${result.violations.length} minor)`);
+      console.log(`PASS ${label} (${minor.length} minor, ${core.length} core-only)`);
     }
     for (const violation of minor) {
       console.log(`  minor ${label}: ${violation.id} (${violation.impact}) x${violation.nodes.length}`);
+    }
+    for (const violation of core) {
+      console.log(`  core ${label}: ${violation.id} (${violation.impact}) x${violation.nodes.length} — WordPress core chrome, not this plugin`);
     }
   }
 
