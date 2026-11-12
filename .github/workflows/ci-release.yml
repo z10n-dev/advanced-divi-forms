@@ -131,6 +131,8 @@ jobs:
             wp: 'latest'
           - php: '8.4'
             wp: 'latest'
+          - php: '8.5'
+            wp: 'latest'
 
     services:
       mysql:
@@ -177,9 +179,179 @@ jobs:
           WP_DB_PASSWORD: wordpress
         run: bash scripts/test-wordpress-activation.sh dist/advanced-divi-forms.zip
 
+  multisite:
+    name: Multisite network
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: wordpress_test
+          MYSQL_USER: wordpress
+          MYSQL_PASSWORD: wordpress
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --host=127.0.0.1 --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mysqli, zip
+          tools: wp-cli
+          coverage: none
+
+      - name: Download tested plugin ZIP
+        uses: actions/download-artifact@v4
+        with:
+          name: advanced-divi-forms-release
+          path: dist
+
+      - name: Test the network suites
+        env:
+          WP_DB_HOST: 127.0.0.1:3306
+          WP_DB_NAME: wordpress_test
+          WP_DB_USER: wordpress
+          WP_DB_PASSWORD: wordpress
+        run: bash scripts/test-wordpress-multisite.sh dist/advanced-divi-forms.zip
+
+  mail-delivery:
+    name: Real SMTP delivery
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: wordpress_test
+          MYSQL_USER: wordpress
+          MYSQL_PASSWORD: wordpress
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --host=127.0.0.1 --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mysqli, zip
+          tools: wp-cli
+          coverage: none
+
+      - name: Download tested plugin ZIP
+        uses: actions/download-artifact@v4
+        with:
+          name: advanced-divi-forms-release
+          path: dist
+
+      - name: Install a disposable site from the tested ZIP
+        run: |
+          set -euo pipefail
+          SITE="$RUNNER_TEMP/site"
+          wp core download --path="$SITE" --locale=en_US
+          wp config create --path="$SITE" \
+            --dbname=wordpress_test --dbuser=wordpress \
+            --dbpass=wordpress --dbhost=127.0.0.1:3306 \
+            --extra-php <<'PHP'
+          define( 'WP_DEBUG', true );
+          define( 'WP_DEBUG_LOG', true );
+          define( 'WP_DEBUG_DISPLAY', false );
+          define( 'WP_ENVIRONMENT_TYPE', 'local' );
+          define( 'DISABLE_WP_CRON', true );
+          PHP
+          wp core install --path="$SITE" --url=http://wordpress.test \
+            --title='Advanced Divi Forms SMTP' --admin_user=ci-admin \
+            --admin_password="$(php -r 'echo bin2hex(random_bytes(24));')" \
+            --admin_email=ci@example.org --skip-email
+          wp plugin install "$GITHUB_WORKSPACE/dist/advanced-divi-forms.zip" --path="$SITE" --activate
+
+      - name: Send one notification and one confirmation over SMTP
+        run: WP=wp bash scripts/test-mail-smtp.sh --path="$RUNNER_TEMP/site"
+
+  accessibility:
+    name: Admin accessibility (axe-core)
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: wordpress_test
+          MYSQL_USER: wordpress
+          MYSQL_PASSWORD: wordpress
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --host=127.0.0.1 --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mysqli, zip
+          tools: wp-cli
+          coverage: none
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Download tested plugin ZIP
+        uses: actions/download-artifact@v4
+        with:
+          name: advanced-divi-forms-release
+          path: dist
+
+      - name: Install audit dependencies
+        run: |
+          npm install --no-save playwright axe-core
+          npx playwright install --with-deps chromium
+
+      - name: Audit the admin screens
+        env:
+          WP_DB_HOST: 127.0.0.1:3306
+          WP_DB_NAME: wordpress_test
+          WP_DB_USER: wordpress
+          WP_DB_PASSWORD: wordpress
+        run: bash scripts/test-admin-accessibility.sh dist/advanced-divi-forms.zip
+
   release:
     name: Publish release ZIP
-    needs: [validate, compat]
+    needs: [validate, compat, multisite, mail-delivery, accessibility]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
 

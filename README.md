@@ -10,14 +10,26 @@ Without a selected template, the native recipient email remains unchanged.
 - Divi **5.16.0 or newer**, tested against 5.16.0. Without Divi, or on Divi 4, the
   plugin stores and sends nothing: administrators get a warning notice and the
   **Forms → Updates** page reports the version it detected.
-- WordPress **6.2 or newer** on PHP **8.2–8.4**. CI runs the same release ZIP
+- WordPress **6.2 or newer** on PHP **8.2–8.5**. CI runs the same release ZIP
   against WordPress 6.2, 6.7 and the latest release on PHP 8.2, and against PHP
-  8.3/8.4 on the newer releases.
-- Single-site installations. Settings are stored per site and the uninstall pass
-  walks every site of a network, but multisite is not covered by the automated
-  suites.
-- Not verified automatically: a licensed Divi editing session, real SMTP delivery
-  and live staging layouts. Test those on staging before deploying.
+  8.3/8.4/8.5 on the newer releases.
+- Single-site and multisite installations. Settings are stored per site and the
+  uninstall pass walks every site of a network; `tests/multisite.php` runs that on
+  a disposable network in CI (per-site capabilities, isolated answers, removal).
+- Delivered in English and German. The build ships `languages/*.pot`,
+  `languages/*-de_DE.po` and the compiled `.mo`; complete coverage is tested.
+  `tests/i18n.php` fails if any string is untranslated or a placeholder changes.
+- Mail delivery is verified through a **real SMTP transaction to a local sink**
+  (`tests/mail-smtp.php`), never to an external provider. Your provider, TLS and
+  authentication settings still need one staging test.
+- The admin screens are audited with axe-core (`tests/admin-accessibility.js`):
+  no serious or critical WCAG A/AA violations on the Forms list, answer list,
+  answer detail, Trash view, Mail Templates, template editor, Privacy & Retention
+  and Updates screens. Automated checks cannot replace a manual keyboard/screen
+  reader pass.
+- Not verified automatically: a licensed Divi editing session (see
+  `.github/workflows/divi-live.yml`, which needs the licensed theme as a secret)
+  and your own SMTP provider. Test both on staging before deploying.
 
 ## Forms administration
 
@@ -347,6 +359,33 @@ define( 'ADF_DELETE_ALL_DATA_ON_UNINSTALL', true );
 Deactivating the plugin never deletes anything; it only unschedules the retention
 cleanup.
 
+## Translations
+
+The plugin ships English source strings plus a complete German catalogue:
+
+- `languages/advanced-divi-forms.pot` — template for new languages
+- `languages/advanced-divi-forms-de_DE.po` — German source catalogue
+- `languages/advanced-divi-forms-de_DE.mo` — compiled catalogue WordPress loads
+
+`adf_load_textdomain()` runs on `init` and points WordPress at the plugin's own
+`languages` directory, so bundled files work without a language pack. Language
+packs installed in `WP_LANG_DIR/plugins` still take precedence.
+
+After changing a translatable string, regenerate both files (WP-CLI 2.10+):
+
+```sh
+wp i18n make-pot . languages/advanced-divi-forms.pot \
+  --domain=advanced-divi-forms \
+  --exclude=dist,tests,.ci,vendor,node_modules,.git
+
+wp i18n make-mo languages/advanced-divi-forms-de_DE.po languages
+```
+
+`tests/i18n.php` (in the activation smoke test) then fails if a string is
+untranslated, if the catalogues disagree on the entry count, or if placeholders
+such as `%1$s` change. Only English and German are supported; add further locales
+by copying the `.po`, compiling it with `wp i18n make-mo` and keeping it complete.
+
 ## Setup
 
 1. Push this repository to GitHub. Make it **public**: public GitHub release downloads require no credentials.
@@ -387,8 +426,15 @@ and installs it with WP-CLI in a temporary installation of the latest stable
 WordPress, using PHP 8.2 and a disposable MySQL 8 database. It checks activation,
 a subsequent WordPress bootstrap, and the debug log for fatal PHP errors.
 A second job replays the **same artifact** on WordPress 6.2, 6.7 and the latest
-release (PHP 8.2) as well as PHP 8.3/8.4 on the newer releases; a release is
-published only after both jobs pass.
+release (PHP 8.2) as well as PHP 8.3, 8.4 and 8.5 on the newer releases.
+Three more jobs use the same tested ZIP: a **multisite** network run
+(`tests/multisite.php`), a **real SMTP** delivery run against a local sink
+(`tests/mail-smtp.php` with `tests/smtp-sink.py`) and an **accessibility** audit
+with axe-core over every plugin admin screen (`tests/admin-accessibility.js`).
+A release is published only after the compatibility matrix and all three jobs
+pass. The licensed Divi live run is a separate manual workflow
+(`.github/workflows/divi-live.yml`), because the repository must not bundle or
+download Divi; without that secret the live suite stays unrun.
 It also runs `tests/admin-integration.php` against the installed ZIP to check
 storage, pagination, template sanitization/rendering, permissions and answer actions.
 `tests/mail-summary.php` covers summary tables, labels, escaping, line breaks,

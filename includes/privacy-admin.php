@@ -89,11 +89,21 @@ function adf_render_privacy_settings() {
 		<p><?php esc_html_e( 'Stored answers are kept until someone deletes them. Automatic deletion is OFF by default and only runs for a period you configure here.', 'advanced-divi-forms' ); ?></p>
 		<table class="widefat striped">
 			<tbody>
-				<tr><th scope="row"><?php esc_html_e( 'Automatic deletion', 'advanced-divi-forms' ); ?></th><td><?php echo $enabled ? esc_html( sprintf( __( 'Enabled after %d days', 'advanced-divi-forms' ), $days ) ) : esc_html__( 'Disabled — nothing is deleted automatically', 'advanced-divi-forms' ); // phpcs:ignore WordPress.WP.I18n.MissingTranslatorsComment -- Configured retention period. ?></td></tr>
+				<tr><th scope="row"><?php esc_html_e( 'Automatic deletion', 'advanced-divi-forms' ); ?></th><td>
+					<?php
+					if ( $enabled ) {
+						/* translators: %d: number of days after which stored answers are deleted. */
+						echo esc_html( sprintf( __( 'Enabled after %d days', 'advanced-divi-forms' ), $days ) );
+					} else {
+						esc_html_e( 'Disabled — nothing is deleted automatically', 'advanced-divi-forms' );
+					}
+					?>
+				</td></tr>
 				<tr><th scope="row"><?php esc_html_e( 'Last cleanup', 'advanced-divi-forms' ); ?></th><td>
 					<?php
 					if ( is_array( $last_run ) && ! empty( $last_run['time'] ) ) {
-						echo esc_html( sprintf( __( '%1$s — %2$d submissions removed (configured period: %3$d days)', 'advanced-divi-forms' ), wp_date( 'Y-m-d H:i', (int) $last_run['time'] ), (int) ( $last_run['removed'] ?? 0 ), (int) ( $last_run['days'] ?? 0 ) ) ); // phpcs:ignore WordPress.WP.I18n.MissingTranslatorsComment -- Cleanup timestamp, removed count and period.
+						/* translators: %1$s: date and time of the last cleanup, %2$d: number of deleted answers, %3$d: configured retention period in days. */
+						echo esc_html( sprintf( __( '%1$s — %2$d submissions removed (configured period: %3$d days)', 'advanced-divi-forms' ), wp_date( 'Y-m-d H:i', (int) $last_run['time'] ), (int) ( $last_run['removed'] ?? 0 ), (int) ( $last_run['days'] ?? 0 ) ) );
 					} else {
 						esc_html_e( 'No cleanup has run yet.', 'advanced-divi-forms' );
 					}

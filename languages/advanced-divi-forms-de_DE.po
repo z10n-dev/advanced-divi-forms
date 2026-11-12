@@ -1,0 +1,1080 @@
+# Copyright (C) 2026 z10n-dev
+# This file is distributed under the GPL-2.0-or-later.
+msgid ""
+msgstr ""
+"Project-Id-Version: Advanced Divi Forms 0.13.0\n"
+"Report-Msgid-Bugs-To: https://github.com/z10n-dev/advanced-divi-forms/issues\n"
+"Last-Translator: z10n-dev\n"
+"Language-Team: Deutsch\n"
+"Language: de_DE\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-11-12T00:00:00+00:00\n"
+"PO-Revision-Date: 2026-11-12T00:00:00+00:00\n"
+"X-Generator: WP-CLI 2.12.0\n"
+"X-Domain: advanced-divi-forms\n"
+
+#. Plugin Name of the plugin
+#: advanced-divi-forms.php
+#: includes/admin-menu.php:23
+msgid "Advanced Divi Forms"
+msgstr "Advanced Divi Forms"
+
+#. Plugin URI of the plugin
+#: advanced-divi-forms.php
+msgid "https://github.com/z10n-dev/advanced-divi-forms"
+msgstr "https://github.com/z10n-dev/advanced-divi-forms"
+
+#. Description of the plugin
+#: advanced-divi-forms.php
+msgid "Custom enhancements for Divi contact forms."
+msgstr "Eigene Erweiterungen für Divi-Kontaktformulare."
+
+#. Author of the plugin
+#: advanced-divi-forms.php
+msgid "z10n-dev"
+msgstr "z10n-dev"
+
+#: includes/admin-menu.php:24
+msgid "Forms"
+msgstr "Formulare"
+
+#: includes/admin-menu.php:32
+#: includes/admin-menu.php:33
+#: includes/admin-menu.php:197
+#: includes/submission-list.php:111
+msgid "All Forms"
+msgstr "Alle Formulare"
+
+#: includes/admin-menu.php:49
+msgid "You are not allowed to access this page."
+msgstr "Sie haben keine Berechtigung, auf diese Seite zuzugreifen."
+
+#: includes/admin-menu.php:113
+msgid "Pagination"
+msgstr "Seitennummerierung"
+
+#: includes/admin-menu.php:159
+#: includes/form-data.php:203
+#: includes/submission-actions.php:29
+#: includes/submission-export.php:120
+msgid "The form does not exist."
+msgstr "Das Formular existiert nicht."
+
+#: includes/admin-menu.php:167
+msgid "The submission does not exist for this form."
+msgstr "Diese Einsendung existiert für dieses Formular nicht."
+
+#: includes/admin-menu.php:198
+msgid "Divi 5 forms are registered when their source page is saved or rendered. Discover existing forms below. Saving answers must be explicitly enabled in each form’s Email settings."
+msgstr "Divi-5-Formulare werden registriert, sobald ihre Quellseite gespeichert oder aufgerufen wird. Bereits vorhandene Formulare finden Sie unten über die Suche. Das Speichern von Antworten muss in den E-Mail-Einstellungen jedes Formulars ausdrücklich aktiviert werden."
+
+#: includes/admin-menu.php:203
+msgid "Continue discovery"
+msgstr "Suche fortsetzen"
+
+#: includes/admin-menu.php:203
+msgid "Discover existing forms"
+msgstr "Vorhandene Formulare suchen"
+
+#: includes/admin-menu.php:208
+#: includes/admin-menu.php:271
+msgid "Form"
+msgstr "Formular"
+
+#: includes/admin-menu.php:209
+#: includes/admin-menu.php:272
+msgid "Source Page"
+msgstr "Quellseite"
+
+#: includes/admin-menu.php:210
+#: includes/submission-list.php:112
+msgid "Submissions"
+msgstr "Einsendungen"
+
+#: includes/admin-menu.php:211
+msgid "Last Submission"
+msgstr "Letzte Einsendung"
+
+#: includes/admin-menu.php:215
+msgid "No forms have been registered yet."
+msgstr "Es wurden noch keine Formulare registriert."
+
+#: includes/admin-menu.php:227
+msgid "Legacy Divi shortcode. Convert the source to Divi 5 before using template selection and answer capture."
+msgstr "Alter Divi-Shortcode. Wandeln Sie die Quelle in Divi 5 um, bevor Sie Vorlagenauswahl und Antwortspeicherung nutzen."
+
+#: includes/admin-menu.php:230
+msgid "The last submission could not be stored. Check the database before relying on capture."
+msgstr "Die letzte Einsendung konnte nicht gespeichert werden. Prüfen Sie die Datenbank, bevor Sie sich auf die Speicherung verlassen."
+
+#: includes/admin-menu.php:233
+msgid "Not available"
+msgstr "Nicht verfügbar"
+
+#: includes/admin-menu.php:258
+msgid "Discovery Results"
+msgstr "Ergebnisse der Suche"
+
+#: includes/admin-menu.php:260
+msgid "Source posts checked:"
+msgstr "Geprüfte Quellbeiträge:"
+
+#: includes/admin-menu.php:261
+msgid "Form definitions found:"
+msgstr "Gefundene Formulardefinitionen:"
+
+#: includes/admin-menu.php:262
+msgid "Forms with stable IDs indexed:"
+msgstr "Formulare mit stabiler ID indexiert:"
+
+#: includes/admin-menu.php:264
+msgid "Counts include all completed batches, including forms already indexed. If more source posts remain, use Continue discovery. These diagnostics expire after one hour."
+msgstr "Die Zahlen umfassen alle abgeschlossenen Durchläufe, auch bereits indexierte Formulare. Falls weitere Quellbeiträge ausstehen, nutzen Sie „Suche fortsetzen“. Diese Diagnosedaten verfallen nach einer Stunde."
+
+#: includes/admin-menu.php:267
+msgid "Detected Forms Requiring Attention"
+msgstr "Gefundene Formulare, die Aufmerksamkeit benötigen"
+
+#: includes/admin-menu.php:268
+msgid "Up to 100 diagnostics are shown. No source page content has been modified."
+msgstr "Es werden bis zu 100 Diagnoseeinträge angezeigt. Der Inhalt der Quellseiten wurde nicht verändert."
+
+#: includes/admin-menu.php:273
+msgid "Format"
+msgstr "Format"
+
+#: includes/admin-menu.php:274
+msgid "Next Step"
+msgstr "Nächster Schritt"
+
+#: includes/admin-menu.php:288
+msgid "Legacy Divi shortcode"
+msgstr "Alter Divi-Shortcode"
+
+#: includes/admin-menu.php:288
+msgid "Divi 5 block"
+msgstr "Divi-5-Block"
+
+#: includes/admin-menu.php:291
+msgid "No persistent module UUID was saved. Open or migrate this source in the Divi 5 Builder. If saving alone does not assign an ID, test a newly added or duplicated Contact Form on staging. Run discovery again afterward. Positional IDs are not used because they could mix answers after reordering."
+msgstr "Es wurde keine dauerhafte Modul-UUID gespeichert. Öffnen oder migrieren Sie diese Quelle im Divi-5-Builder. Wird durch reines Speichern keine ID vergeben, testen Sie ein neu hinzugefügtes oder dupliziertes Kontaktformular auf einer Staging-Umgebung und starten Sie danach die Suche erneut. Positionsbasierte IDs werden nicht verwendet, da sie Antworten nach einer Umsortierung vermischen könnten."
+
+#: includes/admin-menu.php:293
+msgid "The form was found, but its index record could not be saved. Check the database and retry."
+msgstr "Das Formular wurde gefunden, sein Indexeintrag konnte aber nicht gespeichert werden. Prüfen Sie die Datenbank und versuchen Sie es erneut."
+
+#: includes/admin-menu.php:339
+msgid "Submission"
+msgstr "Einsendung"
+
+#: includes/admin-menu.php:340
+msgid "Back to submissions"
+msgstr "Zurück zu den Einsendungen"
+
+#: includes/admin-menu.php:343
+msgid "Field / ID"
+msgstr "Feld / ID"
+
+#: includes/admin-menu.php:343
+#: includes/mail-templates.php:248
+msgid "Value"
+msgstr "Wert"
+
+#: includes/admin-menu.php:358
+#: includes/submission-list.php:154
+msgid "Mark as read"
+msgstr "Als gelesen markieren"
+
+#: includes/admin-menu.php:361
+msgid "Restore submission"
+msgstr "Einsendung wiederherstellen"
+
+#: includes/admin-menu.php:362
+msgid "I confirm that this submission should be permanently deleted."
+msgstr "Ich bestätige, dass diese Einsendung endgültig gelöscht werden soll."
+
+#: includes/admin-menu.php:363
+#: includes/submission-list.php:152
+msgid "Delete permanently"
+msgstr "Endgültig löschen"
+
+#: includes/admin-menu.php:365
+#: includes/submission-list.php:156
+msgid "Move to Trash"
+msgstr "In den Papierkorb verschieben"
+
+#: includes/admin-menu.php:381
+#: includes/submission-actions.php:90
+msgid "Use a POST request for submission actions."
+msgstr "Verwenden Sie eine POST-Anfrage für Aktionen an Einsendungen."
+
+#: includes/admin-menu.php:394
+msgid "The submission does not exist."
+msgstr "Die Einsendung existiert nicht."
+
+#: includes/admin-menu.php:405
+#: includes/admin-menu.php:411
+msgid "Choose one submission action."
+msgstr "Wählen Sie genau eine Aktion für Einsendungen."
+
+#: includes/divi-integration.php:38
+msgid "Default / Disabled"
+msgstr "Standard / Deaktiviert"
+
+#: includes/divi-integration.php:55
+msgid "Notification Template"
+msgstr "Benachrichtigungsvorlage"
+
+#: includes/divi-integration.php:56
+msgid "Replace the existing recipient email with a published HTML template. Default keeps Divi delivery unchanged."
+msgstr "Ersetzt die bestehende Empfänger-E-Mail durch eine veröffentlichte HTML-Vorlage. „Standard“ lässt den Divi-Versand unverändert."
+
+#: includes/divi-integration.php:61
+msgid "Sender Confirmation Template"
+msgstr "Bestätigungsvorlage für Absender"
+
+#: includes/divi-integration.php:62
+msgid "Optional confirmation, sent only after the recipient email succeeds. Disabled by default."
+msgstr "Optionale Bestätigung, die erst nach erfolgreichem Empfänger-Versand gesendet wird. Standardmäßig deaktiviert."
+
+#: includes/divi-integration.php:67
+msgid "Sender Email Field ID"
+msgstr "Feld-ID der Absender-E-Mail"
+
+#: includes/divi-integration.php:68
+msgid "Stable ID of an Email-type field. Leave blank for email. A valid Email field is required for confirmations."
+msgstr "Stabile ID eines Feldes vom Typ E-Mail. Leer lassen für „email“. Für Bestätigungen ist ein gültiges E-Mail-Feld erforderlich."
+
+#: includes/divi-integration.php:73
+msgid "Save Submissions"
+msgstr "Einsendungen speichern"
+
+#: includes/divi-integration.php:74
+msgid "Off by default. Enable only after defining your consent and retention policy. Validated field values will be stored in Forms."
+msgstr "Standardmäßig aus. Aktivieren Sie dies erst, nachdem Einwilligung und Aufbewahrungsregeln geklärt sind. Validierte Feldwerte werden unter „Formulare“ gespeichert."
+
+#: includes/divi-integration.php:78
+msgid "No"
+msgstr "Nein"
+
+#: includes/divi-integration.php:79
+msgid "Yes"
+msgstr "Ja"
+
+#: includes/divi-integration.php:174
+msgid "Contact Form"
+msgstr "Kontaktformular"
+
+#: includes/divi-integration.php:187
+msgid "The Divi form has no stable identity."
+msgstr "Das Divi-Formular hat keine stabile Identität."
+
+#: includes/divi-integration.php:335
+msgid "The source of this Divi form is ambiguous. Save or rediscover its source page first."
+msgstr "Die Quelle dieses Divi-Formulars ist nicht eindeutig. Speichern oder suchen Sie die Quellseite zuerst erneut."
+
+#. translators: %s: minimum supported Divi version.
+#: includes/divi-support.php:115
+#, php-format
+msgid "Advanced Divi Forms needs Divi %s or newer. No Divi theme is active, so contact-form answers, emails, templates and exports are not handled yet."
+msgstr "Advanced Divi Forms benötigt Divi %s oder neuer. Es ist kein Divi-Theme aktiv, daher werden Antworten, E-Mails, Vorlagen und Exporte von Kontaktformularen noch nicht verarbeitet."
+
+#. translators: 1: minimum supported Divi version, 2: theme name, 3: detected version.
+#: includes/divi-support.php:121
+#, php-format
+msgid "Advanced Divi Forms needs Divi %1$s or newer, but %2$s %3$s is active. Update Divi before relying on the integration."
+msgstr "Advanced Divi Forms benötigt Divi %1$s oder neuer, aktiv ist jedoch %2$s %3$s. Aktualisieren Sie Divi, bevor Sie sich auf die Integration verlassen."
+
+#: includes/divi-support.php:142
+msgid "Not detected - no Divi theme is active"
+msgstr "Nicht erkannt – kein Divi-Theme aktiv"
+
+#. translators: 1: theme name, 2: version, 3: minimum version.
+#: includes/divi-support.php:146
+#, php-format
+msgid "%1$s %2$s (supported, needs %3$s or newer)"
+msgstr "%1$s %2$s (unterstützt, benötigt %3$s oder neuer)"
+
+#. translators: 1: theme name, 2: version, 3: minimum version.
+#: includes/divi-support.php:149
+#, php-format
+msgid "%1$s %2$s (outdated, needs %3$s or newer)"
+msgstr "%1$s %2$s (veraltet, benötigt %3$s oder neuer)"
+
+#: includes/form-data.php:79
+msgid "A form needs a stable source key and a name."
+msgstr "Ein Formular benötigt einen stabilen Quellschlüssel und einen Namen."
+
+#: includes/form-data.php:210
+msgid "Field IDs may contain letters, numbers, underscores and hyphens only."
+msgstr "Feld-IDs dürfen nur Buchstaben, Zahlen, Unterstriche und Bindestriche enthalten."
+
+#: includes/form-data.php:224
+msgid "The submission contains no fields."
+msgstr "Die Einsendung enthält keine Felder."
+
+#: includes/form-data.php:247
+msgid "The original submission was retained, but its label snapshot could not be stored. Review storage before collecting more answers."
+msgstr "Die ursprüngliche Einsendung bleibt erhalten, ihr Beschriftungs-Schnappschuss konnte aber nicht gespeichert werden. Prüfen Sie die Speicherung, bevor Sie weitere Antworten erfassen."
+
+#: includes/github-updater.php:22
+msgid "GitHub did not return a published stable release."
+msgstr "GitHub hat keine veröffentlichte stabile Version zurückgegeben."
+
+#: includes/github-updater.php:26
+msgid "The release has an invalid version tag."
+msgstr "Die Version hat ein ungültiges Versionskürzel."
+
+#: includes/github-updater.php:44
+msgid "The release is missing its expected plugin ZIP. No package will be offered."
+msgstr "Der Version fehlt das erwartete Plugin-ZIP. Es wird kein Paket angeboten."
+
+#: includes/github-updater.php:115
+msgid "GitHub could not be reached. Check the server’s network, TLS and proxy configuration."
+msgstr "GitHub war nicht erreichbar. Prüfen Sie Netzwerk, TLS und Proxy-Konfiguration des Servers."
+
+#: includes/github-updater.php:117
+msgid "GitHub’s request limit has been reached. Try again after the rate limit resets."
+msgstr "Das Anfragelimit von GitHub ist erreicht. Versuchen Sie es nach dem Zurücksetzen des Limits erneut."
+
+#: includes/github-updater.php:119
+msgid "GitHub returned an unsuccessful HTTP response. Check the status code below and retry later."
+msgstr "GitHub hat mit einem Fehlerstatus geantwortet. Prüfen Sie den Statuscode unten und versuchen Sie es später erneut."
+
+#: includes/mail-templates.php:26
+msgid "Template ID"
+msgstr "Vorlagen-ID"
+
+#: includes/mail-templates.php:27
+#: includes/mail-templates.php:153
+#: includes/mail-templates.php:165
+msgid "Subject"
+msgstr "Betreff"
+
+#: includes/mail-templates.php:60
+#: includes/mail-templates.php:62
+msgid "Mail Templates"
+msgstr "E-Mail-Vorlagen"
+
+#: includes/mail-templates.php:61
+msgid "Mail Template"
+msgstr "E-Mail-Vorlage"
+
+#: includes/mail-templates.php:63
+msgid "Add Mail Template"
+msgstr "E-Mail-Vorlage hinzufügen"
+
+#: includes/mail-templates.php:64
+msgid "Edit Mail Template"
+msgstr "E-Mail-Vorlage bearbeiten"
+
+#: includes/mail-templates.php:65
+msgid "New Mail Template"
+msgstr "Neue E-Mail-Vorlage"
+
+#: includes/mail-templates.php:66
+msgid "Search Mail Templates"
+msgstr "E-Mail-Vorlagen durchsuchen"
+
+#: includes/mail-templates.php:67
+msgid "No mail templates found."
+msgstr "Keine E-Mail-Vorlagen gefunden."
+
+#: includes/mail-templates.php:124
+msgid "Email Content"
+msgstr "E-Mail-Inhalt"
+
+#: includes/mail-templates.php:136
+msgid "The template is not available."
+msgstr "Die Vorlage ist nicht verfügbar."
+
+#: includes/mail-templates.php:152
+msgid "Template ID:"
+msgstr "Vorlagen-ID:"
+
+#: includes/mail-templates.php:155
+msgid "HTML Content"
+msgstr "HTML-Inhalt"
+
+#: includes/mail-templates.php:157
+msgid "Use inline CSS. Scripts, style blocks and unsafe HTML are removed. Placeholders use stable Divi field IDs in text content, never tag names or attributes. Missing fields become empty text. {{form.summary}} is HTML-body-only."
+msgstr "Verwenden Sie Inline-CSS. Skripte, Style-Blöcke und unsicheres HTML werden entfernt. Platzhalter verwenden stabile Divi-Feld-IDs im Textinhalt, niemals Tag-Namen oder Attribute. Fehlende Felder werden zu leerem Text. {{form.summary}} funktioniert nur im HTML-Textkörper."
+
+#: includes/mail-templates.php:158
+msgid "Publish this template to select it in Divi. Saving and previewing do not send email. Preview test values are never stored as submissions."
+msgstr "Veröffentlichen Sie diese Vorlage, um sie in Divi auswählen zu können. Speichern und Vorschau versenden keine E-Mail. Testwerte aus der Vorschau werden nie als Einsendung gespeichert."
+
+#: includes/mail-templates.php:160
+msgid "Test-data preview"
+msgstr "Vorschau mit Testdaten"
+
+#: includes/mail-templates.php:161
+msgid "Synthetic field values (JSON)"
+msgstr "Synthetische Feldwerte (JSON)"
+
+#: includes/mail-templates.php:163
+msgid "Use only invented test values. Match the keys to your Divi field IDs. This helper lists IDs from these test values, not from real answers. Up to 50 fields and 50,000 JSON bytes. External resources and link navigation are disabled in the preview."
+msgstr "Verwenden Sie ausschließlich erfundene Testwerte. Die Schlüssel müssen den Divi-Feld-IDs entsprechen. Diese Hilfe listet IDs aus diesen Testwerten auf, nicht aus echten Antworten. Bis zu 50 Felder und 50.000 JSON-Bytes. Externe Ressourcen und Link-Navigation sind in der Vorschau deaktiviert."
+
+#: includes/mail-templates.php:164
+msgid "Insert placeholder into"
+msgstr "Platzhalter einfügen in"
+
+#: includes/mail-templates.php:165
+msgid "HTML body"
+msgstr "HTML-Body"
+
+#: includes/mail-templates.php:166
+msgid "Placeholders from test data"
+msgstr "Platzhalter aus Testdaten"
+
+#: includes/mail-templates.php:171
+msgid "Render test-data preview"
+msgstr "Vorschau mit Testdaten rendern"
+
+#: includes/mail-templates.php:172
+msgid "Showing saved HTML. Use the button to preview unsaved content with synthetic values; nothing is saved or sent."
+msgstr "Angezeigt wird das gespeicherte HTML. Mit der Schaltfläche rendern Sie nicht gespeicherte Inhalte mit synthetischen Werten als Vorschau; dabei wird nichts gespeichert oder versendet."
+
+#: includes/mail-templates.php:174
+msgid "Rendered subject:"
+msgstr "Gerenderter Betreff:"
+
+#: includes/mail-templates.php:175
+msgid "Email template preview"
+msgstr "Vorschau der E-Mail-Vorlage"
+
+#: includes/mail-templates.php:225
+msgid "Rendering synthetic values without saving or sending…"
+msgstr "Synthetische Werte werden gerendert, ohne zu speichern oder zu versenden…"
+
+#: includes/mail-templates.php:226
+msgid "Preview rendered. Nothing was saved and no email was sent."
+msgstr "Vorschau gerendert. Es wurde nichts gespeichert und keine E-Mail versendet."
+
+#: includes/mail-templates.php:227
+msgid "Preview failed. Check the test data and try again."
+msgstr "Vorschau fehlgeschlagen. Prüfen Sie die Testdaten und versuchen Sie es erneut."
+
+#: includes/mail-templates.php:228
+msgid "Missing test-data fields:"
+msgstr "Fehlende Testdaten-Felder:"
+
+#: includes/mail-templates.php:229
+msgid "Unsupported placeholders:"
+msgstr "Nicht unterstützte Platzhalter:"
+
+#: includes/mail-templates.php:230
+msgid "Not expanded in HTML attributes:"
+msgstr "In HTML-Attributen nicht ersetzt:"
+
+#: includes/mail-templates.php:231
+msgid "{{form.summary}} is body-only and is not rendered in the subject."
+msgstr "{{form.summary}} funktioniert nur im Textkörper und wird im Betreff nicht gerendert."
+
+#: includes/mail-templates.php:248
+msgid "Field"
+msgstr "Feld"
+
+#: includes/mail-templates.php:268
+msgid "The mail template is not available."
+msgstr "Die E-Mail-Vorlage ist nicht verfügbar."
+
+#: includes/mail-templates.php:337
+msgid "Subject and HTML must be text."
+msgstr "Betreff und HTML müssen Text sein."
+
+#: includes/mail-templates.php:365
+msgid "The mail template needs a subject and HTML content."
+msgstr "Die E-Mail-Vorlage benötigt einen Betreff und HTML-Inhalt."
+
+#: includes/privacy-admin.php:24
+#: includes/privacy-admin.php:25
+#: includes/privacy-admin.php:83
+msgid "Privacy & Retention"
+msgstr "Datenschutz & Aufbewahrung"
+
+#: includes/privacy-admin.php:39
+#: includes/submission-privacy.php:280
+msgid "You are not allowed to change retention settings."
+msgstr "Sie haben keine Berechtigung, die Aufbewahrungseinstellungen zu ändern."
+
+#: includes/privacy-admin.php:42
+msgid "Use a POST request to save privacy settings."
+msgstr "Verwenden Sie eine POST-Anfrage, um Datenschutzeinstellungen zu speichern."
+
+#: includes/privacy-admin.php:46
+msgid "Enter a retention period before enabling deletion."
+msgstr "Geben Sie eine Aufbewahrungsfrist an, bevor Sie die Löschung aktivieren."
+
+#: includes/privacy-admin.php:75
+msgid "You are not allowed to access privacy settings."
+msgstr "Sie haben keine Berechtigung, auf die Datenschutzeinstellungen zuzugreifen."
+
+#: includes/privacy-admin.php:85
+msgid "Privacy settings saved."
+msgstr "Datenschutzeinstellungen gespeichert."
+
+#: includes/privacy-admin.php:87
+msgid "Choose a retention period between 1 and 3650 days, or switch automatic deletion off."
+msgstr "Wählen Sie eine Aufbewahrungsfrist zwischen 1 und 3650 Tagen oder schalten Sie die automatische Löschung aus."
+
+#: includes/privacy-admin.php:89
+msgid "Stored answers are kept until someone deletes them. Automatic deletion is OFF by default and only runs for a period you configure here."
+msgstr "Gespeicherte Antworten bleiben erhalten, bis sie jemand löscht. Die automatische Löschung ist standardmäßig AUS und läuft nur für eine hier festgelegte Frist."
+
+#: includes/privacy-admin.php:92
+msgid "Automatic deletion"
+msgstr "Automatische Löschung"
+
+#. translators: %d: number of days after which stored answers are deleted.
+#: includes/privacy-admin.php:96
+#, php-format
+msgid "Enabled after %d days"
+msgstr "Aktiv nach %d Tagen"
+
+#: includes/privacy-admin.php:98
+msgid "Disabled — nothing is deleted automatically"
+msgstr "Deaktiviert — es wird nichts automatisch gelöscht"
+
+#: includes/privacy-admin.php:102
+msgid "Last cleanup"
+msgstr "Letzte Bereinigung"
+
+#. translators: %1$s: date and time of the last cleanup, %2$d: number of deleted answers, %3$d: configured retention period in days.
+#: includes/privacy-admin.php:106
+#, php-format
+msgid "%1$s — %2$d submissions removed (configured period: %3$d days)"
+msgstr "%1$s — %2$d Einsendungen entfernt (konfigurierte Frist: %3$d Tage)"
+
+#: includes/privacy-admin.php:108
+msgid "No cleanup has run yet."
+msgstr "Es wurde noch keine Bereinigung ausgeführt."
+
+#: includes/privacy-admin.php:117
+msgid "Permanently delete stored answers after the period below"
+msgstr "Gespeicherte Antworten nach der unten festgelegten Frist endgültig löschen"
+
+#: includes/privacy-admin.php:118
+msgid "Retention period (days, 1–3650)"
+msgstr "Aufbewahrungsfrist (Tage, 1–3650)"
+
+#: includes/privacy-admin.php:120
+msgid "This permanently deletes answers in Active and Trash once they are older than the period. It cannot be undone, forms and templates are never deleted, and up to 200 answers are removed per daily run. Only enable it where your privacy policy and consent cover it."
+msgstr "Dies löscht Antworten unter „Aktiv“ und im Papierkorb endgültig, sobald sie älter als die Frist sind. Das lässt sich nicht rückgängig machen, Formulare und Vorlagen werden nie gelöscht, und pro täglichem Lauf werden bis zu 200 Antworten entfernt. Aktivieren Sie dies nur dort, wo Datenschutzerklärung und Einwilligung es abdecken."
+
+#: includes/privacy-admin.php:121
+msgid "Save privacy settings"
+msgstr "Datenschutzeinstellungen speichern"
+
+#: includes/privacy-admin.php:123
+msgid "WordPress privacy tools"
+msgstr "Datenschutz-Werkzeuge von WordPress"
+
+#: includes/privacy-admin.php:124
+msgid "Export and erase requests for stored answers are handled under Tools → Export Personal Data and Tools → Erase Personal Data. Only records with the exactly verified email address are returned or erased; older ambiguous records are reported for manual review instead of being guessed."
+msgstr "Export- und Löschanträge für gespeicherte Antworten werden unter Werkzeuge → Persönliche Daten exportieren und Werkzeuge → Persönliche Daten löschen bearbeitet. Nur Datensätze mit der exakt bestätigten E-Mail-Adresse werden herausgegeben oder gelöscht; ältere mehrdeutige Datensätze werden zur manuellen Prüfung gemeldet, statt geraten zu werden."
+
+#: includes/submission-actions.php:25
+msgid "You are not allowed to manage submissions."
+msgstr "Sie haben keine Berechtigung, Einsendungen zu verwalten."
+
+#: includes/submission-actions.php:32
+msgid "Choose an action and between 1 and 200 submissions."
+msgstr "Wählen Sie eine Aktion und zwischen 1 und 200 Einsendungen."
+
+#: includes/submission-actions.php:38
+msgid "The submission selection is invalid."
+msgstr "Die Auswahl der Einsendungen ist ungültig."
+
+#: includes/submission-actions.php:42
+msgid "Every selected submission must belong to this form and be in the correct Active or Trash state for this action."
+msgstr "Jede ausgewählte Einsendung muss zu diesem Formular gehören und für diese Aktion im richtigen Zustand „Aktiv“ oder „Papierkorb“ sein."
+
+#: includes/submission-actions.php:47
+msgid "Choose a status and a note of at most 5000 characters for one submission."
+msgstr "Wählen Sie für eine Einsendung einen Status und eine Notiz mit höchstens 5000 Zeichen."
+
+#: includes/submission-actions.php:50
+msgid "Confirm permanent deletion before applying this action."
+msgstr "Bestätigen Sie die endgültige Löschung, bevor Sie diese Aktion ausführen."
+
+#: includes/submission-actions.php:62
+msgid "A submission could not be deleted. Some selected records may already have been processed; reload the list before retrying."
+msgstr "Eine Einsendung konnte nicht gelöscht werden. Einige ausgewählte Datensätze wurden möglicherweise bereits verarbeitet; laden Sie die Liste neu, bevor Sie es erneut versuchen."
+
+#: includes/submission-actions.php:69
+msgid "The status could not be saved. Some selected records may already have been processed; reload before retrying."
+msgstr "Der Status konnte nicht gespeichert werden. Einige ausgewählte Datensätze wurden möglicherweise bereits verarbeitet; laden Sie die Seite neu, bevor Sie es erneut versuchen."
+
+#: includes/submission-actions.php:75
+msgid "The internal note could not be saved. Reload before retrying."
+msgstr "Die interne Notiz konnte nicht gespeichert werden. Laden Sie die Seite neu, bevor Sie es erneut versuchen."
+
+#: includes/submission-actions.php:110
+msgid "Status and note must both be supplied as text."
+msgstr "Status und Notiz müssen beide als Text übergeben werden."
+
+#: includes/submission-actions.php:114
+#: includes/submission-export.php:275
+msgid "Select at least one submission to export."
+msgstr "Wählen Sie mindestens eine Einsendung für den Export aus."
+
+#: includes/submission-capabilities.php:97
+msgid "You are not allowed to access these submissions."
+msgstr "Sie haben keine Berechtigung, auf diese Einsendungen zuzugreifen."
+
+#: includes/submission-export.php:26
+msgid "A value exceeds Excel’s 32,767-character cell limit. The export was not truncated."
+msgstr "Ein Wert überschreitet das Zellenlimit von Excel mit 32.767 Zeichen. Der Export wurde nicht abgeschnitten."
+
+#: includes/submission-export.php:42
+msgid "A private writable system temporary directory is required for Excel exports."
+msgstr "Für Excel-Exporte ist ein privates, beschreibbares temporäres Systemverzeichnis erforderlich."
+
+#: includes/submission-export.php:52
+msgid "The system temporary directory must be outside the website’s public directories."
+msgstr "Das temporäre Systemverzeichnis muss außerhalb der öffentlichen Verzeichnisse der Website liegen."
+
+#: includes/submission-export.php:60
+msgid "A private temporary export file could not be created."
+msgstr "Es konnte keine private temporäre Exportdatei erstellt werden."
+
+#: includes/submission-export.php:65
+msgid "Private permissions could not be set on the export file."
+msgstr "Auf der Exportdatei konnten keine privaten Berechtigungen gesetzt werden."
+
+#: includes/submission-export.php:98
+msgid "The Excel file could not be created."
+msgstr "Die Excel-Datei konnte nicht erstellt werden."
+
+#: includes/submission-export.php:116
+msgid "You are not allowed to export submissions."
+msgstr "Sie haben keine Berechtigung, Einsendungen zu exportieren."
+
+#: includes/submission-export.php:128
+#: includes/submission-export.php:157
+msgid "Export at most 10,000 submissions at a time. Nothing has been truncated."
+msgstr "Exportieren Sie höchstens 10.000 Einsendungen auf einmal. Es wurde nichts abgeschnitten."
+
+#: includes/submission-export.php:133
+msgid "The export selection is invalid."
+msgstr "Die Auswahl für den Export ist ungültig."
+
+#: includes/submission-export.php:137
+msgid "Every selected submission must belong to this form."
+msgstr "Jede ausgewählte Einsendung muss zu diesem Formular gehören."
+
+#: includes/submission-export.php:170
+msgid "The export exceeds the column or 250,000-cell safety limit. Export fewer submissions; nothing has been truncated."
+msgstr "Der Export überschreitet das Spalten- oder Sicherheitslimit von 250.000 Zellen. Exportieren Sie weniger Einsendungen; es wurde nichts abgeschnitten."
+
+#: includes/submission-export.php:172
+msgid "Submission ID"
+msgstr "Einsendungs-ID"
+
+#: includes/submission-export.php:172
+#: includes/submission-list.php:182
+#: includes/submission-privacy.php:161
+msgid "Received"
+msgstr "Erhalten"
+
+#: includes/submission-export.php:172
+#: includes/submission-filter-ui.php:120
+#: includes/submission-list.php:54
+#: includes/submission-list.php:183
+msgid "Status"
+msgstr "Status"
+
+#: includes/submission-export.php:172
+#: includes/submission-list.php:61
+#: includes/submission-list.php:185
+msgid "Internal note"
+msgstr "Interne Notiz"
+
+#. translators: %s: stable field ID, which stays distinct even when labels repeat.
+#: includes/submission-export.php:176
+#, php-format
+msgid "Field label [%s]"
+msgstr "Feldbeschriftung [%s]"
+
+#: includes/submission-export.php:187
+#: includes/submission-filter-ui.php:124
+#: includes/submission-list.php:57
+#: includes/submission-list.php:215
+msgid "Read"
+msgstr "Gelesen"
+
+#: includes/submission-export.php:187
+#: includes/submission-list.php:215
+msgid "New"
+msgstr "Neu"
+
+#: includes/submission-export.php:206
+msgid "The export exceeds the 8 MiB worksheet safety limit. Export fewer submissions; nothing has been truncated."
+msgstr "Der Export überschreitet das Sicherheitslimit von 8 MiB pro Arbeitsblatt. Exportieren Sie weniger Einsendungen; es wurde nichts abgeschnitten."
+
+#: includes/submission-export.php:229
+msgid "The export file is not available."
+msgstr "Die Exportdatei ist nicht verfügbar."
+
+#: includes/submission-export.php:234
+msgid "The download could not start because output was already sent."
+msgstr "Der Download konnte nicht starten, weil bereits eine Ausgabe gesendet wurde."
+
+#: includes/submission-export.php:256
+msgid "Use a POST request to export submissions."
+msgstr "Verwenden Sie eine POST-Anfrage, um Einsendungen zu exportieren."
+
+#: includes/submission-export.php:265
+msgid "Choose an unambiguous selected, filtered or all-submissions export."
+msgstr "Wählen Sie einen eindeutigen Export: ausgewählte, gefilterte oder alle Einsendungen."
+
+#: includes/submission-filter-ui.php:84
+msgid "Submission views"
+msgstr "Ansichten der Einsendungen"
+
+#. translators: %d: number of trashed submissions for this form.
+#: includes/submission-filter-ui.php:96
+#, php-format
+msgid "Trash (%d)"
+msgstr "Papierkorb (%d)"
+
+#. translators: %d: number of active submissions for this form.
+#: includes/submission-filter-ui.php:99
+#, php-format
+msgid "Active (%d)"
+msgstr "Aktiv (%d)"
+
+#: includes/submission-filter-ui.php:119
+msgid "Search submitted data"
+msgstr "Gesendete Daten durchsuchen"
+
+#: includes/submission-filter-ui.php:122
+msgid "All statuses"
+msgstr "Alle Status"
+
+#: includes/submission-filter-ui.php:123
+msgid "Unread"
+msgstr "Ungelesen"
+
+#: includes/submission-filter-ui.php:127
+msgid "From date"
+msgstr "Von Datum"
+
+#: includes/submission-filter-ui.php:128
+msgid "To date"
+msgstr "Bis Datum"
+
+#: includes/submission-filter-ui.php:129
+msgid "Date order"
+msgstr "Datumsreihenfolge"
+
+#: includes/submission-filter-ui.php:131
+msgid "Newest first"
+msgstr "Neueste zuerst"
+
+#: includes/submission-filter-ui.php:132
+msgid "Oldest first"
+msgstr "Älteste zuerst"
+
+#: includes/submission-filter-ui.php:135
+msgid "Filter submissions"
+msgstr "Einsendungen filtern"
+
+#: includes/submission-filter-ui.php:136
+msgid "Reset filters"
+msgstr "Filter zurücksetzen"
+
+#: includes/submission-filters.php:30
+msgid "Submission filters must be plain text."
+msgstr "Filter für Einsendungen müssen reiner Text sein."
+
+#: includes/submission-filters.php:36
+msgid "Choose the Active or Trash submission view."
+msgstr "Wählen Sie die Ansicht „Aktiv“ oder „Papierkorb“."
+
+#: includes/submission-filters.php:40
+msgid "Use a search of at most 200 characters and choose a valid status and date sort order."
+msgstr "Verwenden Sie eine Suche mit höchstens 200 Zeichen und wählen Sie einen gültigen Status sowie eine gültige Datums-Sortierung."
+
+#: includes/submission-filters.php:45
+msgid "Choose valid dates in YYYY-MM-DD format."
+msgstr "Wählen Sie gültige Daten im Format JJJJ-MM-TT."
+
+#: includes/submission-filters.php:49
+msgid "The start date must not be later than the end date."
+msgstr "Das Startdatum darf nicht nach dem Enddatum liegen."
+
+#: includes/submission-list.php:44
+msgid "Quick Edit"
+msgstr "Schnellbearbeitung"
+
+#: includes/submission-list.php:56
+msgid "New / Unread"
+msgstr "Neu / Ungelesen"
+
+#: includes/submission-list.php:64
+msgid "Admin-only note. Original submitted values remain unchanged. Notes are included in Excel exports."
+msgstr "Nur für Administratoren sichtbare Notiz. Die ursprünglich gesendeten Werte bleiben unverändert. Notizen sind in Excel-Exporten enthalten."
+
+#: includes/submission-list.php:66
+msgid "Save changes"
+msgstr "Änderungen speichern"
+
+#: includes/submission-list.php:67
+msgid "Cancel"
+msgstr "Abbrechen"
+
+#. translators: %d: number of submissions matching the current filters.
+#: includes/submission-list.php:118
+#, php-format
+msgid "%d matching submissions"
+msgstr "%d passende Einsendungen"
+
+#: includes/submission-list.php:122
+msgid "Submission changes saved."
+msgstr "Änderungen an den Einsendungen gespeichert."
+
+#: includes/submission-list.php:124
+msgid "Select submissions on this page for bulk actions. Export all includes every page of this form. Original submitted values cannot be edited."
+msgstr "Wählen Sie Einsendungen auf dieser Seite für Sammelaktionen aus. „Alle exportieren“ umfasst jede Seite dieses Formulars. Ursprünglich gesendete Werte können nicht bearbeitet werden."
+
+#: includes/submission-list.php:131
+msgid "Export filtered Trash to Excel"
+msgstr "Gefilterten Papierkorb nach Excel exportieren"
+
+#: includes/submission-list.php:131
+msgid "Export filtered to Excel"
+msgstr "Gefilterte nach Excel exportieren"
+
+#: includes/submission-list.php:135
+msgid "Export all to Excel"
+msgstr "Alle nach Excel exportieren"
+
+#: includes/submission-list.php:136
+msgid "XLSX · up to 10,000 submissions per export. Includes internal notes; handle downloads as private data."
+msgstr "XLSX · bis zu 10.000 Einsendungen pro Export. Enthält interne Notizen; behandeln Sie Downloads als vertrauliche Daten."
+
+#: includes/submission-list.php:147
+#: includes/submission-list.php:149
+msgid "Bulk actions"
+msgstr "Sammelaktionen"
+
+#: includes/submission-list.php:151
+msgid "Restore selected"
+msgstr "Ausgewählte wiederherstellen"
+
+#: includes/submission-list.php:155
+msgid "Mark as unread"
+msgstr "Als ungelesen markieren"
+
+#: includes/submission-list.php:161
+msgid "Export selected to Excel"
+msgstr "Ausgewählte nach Excel exportieren"
+
+#: includes/submission-list.php:163
+msgid "Apply"
+msgstr "Anwenden"
+
+#. translators: %d: number of submissions selected in the bulk form.
+#: includes/submission-list.php:166
+#, php-format
+msgid "%d selected"
+msgstr "%d ausgewählt"
+
+#: includes/submission-list.php:171
+msgid "I confirm permanent deletion of the selected submissions. This cannot be undone."
+msgstr "Ich bestätige die endgültige Löschung der ausgewählten Einsendungen. Das lässt sich nicht rückgängig machen."
+
+#: includes/submission-list.php:181
+msgid "Select all submissions on this page"
+msgstr "Alle Einsendungen auf dieser Seite auswählen"
+
+#: includes/submission-list.php:184
+msgid "Preview"
+msgstr "Vorschau"
+
+#: includes/submission-list.php:189
+msgid "No submissions match these filters."
+msgstr "Keine Einsendungen entsprechen diesen Filtern."
+
+#. translators: %d: submission ID shown in the checkbox label.
+#: includes/submission-list.php:211
+#, php-format
+msgid "Select submission #%d"
+msgstr "Einsendung #%d auswählen"
+
+#: includes/submission-privacy.php:28
+#: includes/submission-privacy.php:42
+#: includes/submission-privacy.php:173
+#: includes/submission-privacy.php:181
+msgid "Advanced Divi Forms submissions"
+msgstr "Einsendungen von Advanced Divi Forms"
+
+#: includes/submission-privacy.php:185
+msgid "Note"
+msgstr "Notiz"
+
+#: includes/submission-privacy.php:186
+msgid "Some older submissions could not be matched to a verified email address and are not included. Ask the site administrator to review them manually."
+msgstr "Einige ältere Einsendungen konnten keiner bestätigten E-Mail-Adresse zugeordnet werden und sind nicht enthalten. Bitten Sie die Administration der Website, sie manuell zu prüfen."
+
+#: includes/submission-privacy.php:221
+msgid "Older submissions without a verified email address were retained for manual review; no record was assigned by guesswork."
+msgstr "Ältere Einsendungen ohne bestätigte E-Mail-Adresse wurden zur manuellen Prüfung aufbewahrt; kein Datensatz wurde geraten zugeordnet."
+
+#: includes/submission-privacy.php:224
+msgid "Some matched submissions could not be deleted and must be reviewed manually."
+msgstr "Einige zugeordnete Einsendungen konnten nicht gelöscht werden und müssen manuell geprüft werden."
+
+#: includes/submission-privacy.php:245
+msgid "When a site administrator enables answer storage for a contact form, the submitted field values are saved privately, together with the available field labels, read status and internal notes. The plugin does not collect IP addresses or browser details. Optional retention permanently deletes stored answers after the configured period; it is off by default. Administrators can export, restore, delete or erase answers, and WordPress privacy export/erasure requests are matched only by an exact verified email address. Older records without a verified address are reviewed manually instead of being guessed."
+msgstr "Wenn eine Administration das Speichern von Antworten für ein Kontaktformular aktiviert, werden die gesendeten Feldwerte privat gespeichert, zusammen mit den verfügbaren Feldbeschriftungen, dem Lesestatus und internen Notizen. Das Plugin erfasst keine IP-Adressen und keine Browserdaten. Die optionale Aufbewahrung löscht gespeicherte Antworten nach der konfigurierten Frist endgültig; sie ist standardmäßig aus. Administratoren können Antworten exportieren, wiederherstellen, löschen oder endgültig entfernen, und Export- und Löschanfragen von WordPress werden nur bei exakt bestätigter E-Mail-Adresse zugeordnet. Ältere Datensätze ohne bestätigte Adresse werden manuell geprüft, statt geraten zu werden."
+
+#: includes/submission-privacy.php:285
+msgid "Choose a retention period between 1 and 3650 days before enabling automatic deletion."
+msgstr "Wählen Sie eine Aufbewahrungsfrist zwischen 1 und 3650 Tagen, bevor Sie die automatische Löschung aktivieren."
+
+#: includes/submission-trash.php:54
+msgid "Only trashed submissions can be restored."
+msgstr "Nur Einsendungen im Papierkorb können wiederhergestellt werden."
+
+#: includes/submission-trash.php:58
+msgid "A submission could not be restored. Reload before retrying; some selected records may already have been processed."
+msgstr "Eine Einsendung konnte nicht wiederhergestellt werden. Laden Sie die Seite neu, bevor Sie es erneut versuchen; einige ausgewählte Datensätze wurden möglicherweise bereits verarbeitet."
+
+#: includes/submission-trash.php:74
+msgid "Only active submissions can be moved to Trash."
+msgstr "Nur aktive Einsendungen können in den Papierkorb verschoben werden."
+
+#: includes/submission-trash.php:93
+msgid "A submission could not be moved to Trash. Reload before retrying; some selected records may already have been processed."
+msgstr "Eine Einsendung konnte nicht in den Papierkorb verschoben werden. Laden Sie die Seite neu, bevor Sie es erneut versuchen; einige ausgewählte Datensätze wurden möglicherweise bereits verarbeitet."
+
+#: includes/template-preview.php:21
+msgid "You are not allowed to preview template HTML."
+msgstr "Sie haben keine Berechtigung, Vorlagen-HTML als Vorschau anzuzeigen."
+
+#: includes/template-preview.php:24
+msgid "Use POST for a synthetic template preview."
+msgstr "Verwenden Sie POST für eine Vorschau mit synthetischen Testdaten."
+
+#: includes/template-preview.php:30
+msgid "Choose a valid template ID."
+msgstr "Wählen Sie eine gültige Vorlagen-ID."
+
+#: includes/template-preview.php:35
+msgid "The preview security token expired. Reload the editor."
+msgstr "Das Sicherheits-Token der Vorschau ist abgelaufen. Laden Sie den Editor neu."
+
+#: includes/template-preview.php:39
+msgid "The template is not available for preview."
+msgstr "Die Vorlage ist für die Vorschau nicht verfügbar."
+
+#: includes/template-preview.php:44
+msgid "Subject, HTML and test-data JSON must all be supplied as text."
+msgstr "Betreff, HTML und Testdaten-JSON müssen alle als Text übergeben werden."
+
+#: includes/template-preview.php:74
+msgid "Use a test-data JSON object of at most 50,000 bytes."
+msgstr "Verwenden Sie ein Testdaten-JSON-Objekt mit höchstens 50.000 Bytes."
+
+#: includes/template-preview.php:78
+msgid "Use a JSON object with at most 50 field IDs and plain-text test values or flat selection arrays."
+msgstr "Verwenden Sie ein JSON-Objekt mit höchstens 50 Feld-IDs und Text-Testwerten oder flachen Auswahllisten."
+
+#: includes/template-preview.php:85
+msgid "Use distinct field IDs containing letters, digits, underscores or hyphens; IDs are matched case-insensitively."
+msgstr "Verwenden Sie eindeutige Feld-IDs aus Buchstaben, Ziffern, Unterstrichen oder Bindestrichen; IDs werden ohne Rücksicht auf Groß- und Kleinschreibung verglichen."
+
+#: includes/template-preview.php:90
+msgid "Test values must be text, numbers or a flat array of selections."
+msgstr "Testwerte müssen Text, Zahlen oder eine flache Liste von Auswahlen sein."
+
+#: includes/template-preview.php:94
+msgid "Use flat test values of at most 5,000 bytes each."
+msgstr "Verwenden Sie flache Testwerte mit je höchstens 5.000 Bytes."
+
+#: includes/template-preview.php:172
+msgid "Use a subject of at most 1,000 bytes and HTML of at most 200,000 bytes for preview."
+msgstr "Verwenden Sie für die Vorschau einen Betreff mit höchstens 1.000 Bytes und HTML mit höchstens 200.000 Bytes."
+
+#: includes/template-preview.php:185
+msgid "The expanded preview is too large. Reduce repeated placeholders or test-data sizes."
+msgstr "Die erweiterte Vorschau ist zu groß. Reduzieren Sie wiederholte Platzhalter oder die Größe der Testdaten."
+
+#: includes/update-admin.php:21
+#: includes/update-admin.php:112
+msgid "Plugin Updates"
+msgstr "Plugin-Updates"
+
+#: includes/update-admin.php:21
+msgid "Updates"
+msgstr "Aktualisierungen"
+
+#: includes/update-admin.php:63
+msgid "You are not allowed to check plugin updates."
+msgstr "Sie haben keine Berechtigung, Plugin-Updates zu prüfen."
+
+#: includes/update-admin.php:80
+msgid "Use the update-check form to request a fresh check."
+msgstr "Verwenden Sie das Formular für die Update-Prüfung, um eine neue Prüfung anzufordern."
+
+#: includes/update-admin.php:100
+msgid "Installed version"
+msgstr "Installierte Version"
+
+#: includes/update-admin.php:101
+msgid "Divi integration"
+msgstr "Divi-Integration"
+
+#: includes/update-admin.php:102
+msgid "Latest stable version (last successful check)"
+msgstr "Neueste stabile Version (letzte erfolgreiche Prüfung)"
+
+#: includes/update-admin.php:102
+msgid "Not checked successfully yet"
+msgstr "Noch nicht erfolgreich geprüft"
+
+#: includes/update-admin.php:103
+msgid "Last network attempt"
+msgstr "Letzter Netzwerkversuch"
+
+#: includes/update-admin.php:104
+msgid "Last successful check"
+msgstr "Letzte erfolgreiche Prüfung"
+
+#: includes/update-admin.php:105
+msgid "Last HTTP status"
+msgstr "Letzter HTTP-Status"
+
+#: includes/update-admin.php:108
+msgid "GitHub rate-limit reset"
+msgstr "Zurücksetzung des GitHub-Limits"
+
+#: includes/update-admin.php:114
+msgid "The last update check failed."
+msgstr "Die letzte Update-Prüfung ist fehlgeschlagen."
+
+#: includes/update-admin.php:116
+msgid "A newer release is available. Open the Plugins screen to install it; no update is installed by this check."
+msgstr "Eine neuere Version ist verfügbar. Öffnen Sie die Plugin-Seite, um sie zu installieren; durch diese Prüfung wird kein Update installiert."
+
+#: includes/update-admin.php:118
+msgid "No newer stable release was found at the last successful check."
+msgstr "Bei der letzten erfolgreichen Prüfung wurde keine neuere stabile Version gefunden."
+
+#: includes/update-admin.php:130
+msgid "Check GitHub now (bypass cache)"
+msgstr "GitHub jetzt prüfen (Cache umgehen)"
+
+#: includes/update-admin.php:132
+msgid "This button fetches a fresh GitHub release and refreshes WordPress’s plugin-update results. Routine checks retain the six-hour release cache and a short error cooldown. WordPress’s general Check again link does not clear this plugin’s separate cache."
+msgstr "Diese Schaltfläche ruft eine neue GitHub-Version ab und aktualisiert die Plugin-Update-Ergebnisse von WordPress. Regelmäßige Prüfungen nutzen weiterhin den Sechs-Stunden-Cache der Version und eine kurze Wartezeit nach Fehlern. Der allgemeine Link „Erneut prüfen“ von WordPress leert diesen separaten Cache des Plugins nicht."
+
+#: includes/update-admin.php:133
+msgid "Open Plugins"
+msgstr "Plugins öffnen"

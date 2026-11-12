@@ -112,7 +112,12 @@ function adf_render_submission_list( $form ) {
 		<h2><?php esc_html_e( 'Submissions', 'advanced-divi-forms' ); ?></h2>
 		<?php adf_render_submission_views( $form->ID, $filters ); ?>
 		<?php adf_render_submission_filters( $form->ID, $filters ); ?>
-		<p class="adf-result-count"><?php echo esc_html( sprintf( __( '%d matching submissions', 'advanced-divi-forms' ), $query->found_posts ) ); // phpcs:ignore WordPress.WP.I18n.MissingTranslatorsComment -- Number of submissions matching the current filters. ?></p>
+		<p class="adf-result-count">
+			<?php
+			/* translators: %d: number of submissions matching the current filters. */
+			echo esc_html( sprintf( __( '%d matching submissions', 'advanced-divi-forms' ), $query->found_posts ) );
+			?>
+		</p>
 		<?php if ( adf_admin_query_id( 'adf_updated' ) ) : ?>
 			<div class="notice notice-success inline"><p><?php esc_html_e( 'Submission changes saved.', 'advanced-divi-forms' ); ?></p></div>
 		<?php endif; ?>
@@ -156,7 +161,11 @@ function adf_render_submission_list( $form ) {
 				<option value="export"><?php esc_html_e( 'Export selected to Excel', 'advanced-divi-forms' ); ?></option><?php endif; ?>
 		</select>
 			<?php submit_button( __( 'Apply', 'advanced-divi-forms' ), 'secondary', 'apply', false ); ?>
-		<span data-adf-selection-count data-template="<?php echo esc_attr__( '%d selected', 'advanced-divi-forms' ); // phpcs:ignore WordPress.WP.I18n.MissingTranslatorsComment -- Number of selected submissions. ?>" aria-live="polite"></span>
+			<?php
+			/* translators: %d: number of submissions selected in the bulk form. */
+			$selection_template = __( '%d selected', 'advanced-divi-forms' );
+			?>
+			<span data-adf-selection-count data-template="<?php echo esc_attr( $selection_template ); ?>" aria-live="polite"></span>
 		</div>
 			<?php if ( $can_manage && $in_trash ) : ?>
 		<p class="adf-delete-confirm"><label><input type="checkbox" name="confirm_delete" value="1"><span><?php esc_html_e( 'I confirm permanent deletion of the selected submissions. This cannot be undone.', 'advanced-divi-forms' ); ?></span></label></p>
@@ -197,7 +206,11 @@ function adf_render_submission_list( $form ) {
 					<?php
 					if ( $can_manage || $can_export ) :
 						?>
-						<th scope="row" class="check-column"><input type="checkbox" form="adf-bulk-form" name="submission_ids[]" value="<?php echo esc_attr( $submission->ID ); ?>" aria-label="<?php echo esc_attr( sprintf( __( 'Select submission #%d', 'advanced-divi-forms' ), $submission->ID ) ); // phpcs:ignore WordPress.WP.I18n.MissingTranslatorsComment -- Submission identifier label. ?>"></th><?php endif; ?>
+						<?php
+						/* translators: %d: submission ID shown in the checkbox label. */
+						$select_label = sprintf( __( 'Select submission #%d', 'advanced-divi-forms' ), $submission->ID );
+						?>
+						<th scope="row" class="check-column"><input type="checkbox" form="adf-bulk-form" name="submission_ids[]" value="<?php echo esc_attr( $submission->ID ); ?>" aria-label="<?php echo esc_attr( $select_label ); ?>"></th><?php endif; ?>
 					<td><a href="<?php echo esc_url( $url ); ?>"><?php echo esc_html( get_the_date( 'Y-m-d H:i', $submission ) ); ?></a><br><span class="description">#<?php echo esc_html( $submission->ID ); ?></span></td>
 					<td><span class="adf-status <?php echo $read ? 'adf-status-read' : 'adf-status-new'; ?>"><?php echo $read ? esc_html__( 'Read', 'advanced-divi-forms' ) : esc_html__( 'New', 'advanced-divi-forms' ); ?></span></td>
 					<td class="adf-preview"><?php echo esc_html( adf_submission_preview_text( $submission->ID ) ); ?><?php adf_render_submission_quick_edit( $submission, $page, $filters ); ?></td>

@@ -291,6 +291,29 @@ Beleg Iteration 6 (0.11.0), Commit `76e227926abf0359623d9cc244119bf0a13f0159`:
       Multisite-Verhalten (Code vorhanden, nicht ausgeführt), Übersetzungen und
       Barrierefreiheit der Admin-UI.
 
+### 8. Release-Lücken schliessen (0.13.0)
+Ziel: die in Iteration 7 ausdrücklich offenen Punkte so weit schliessen, wie es
+ohne fremde Zugangsdaten möglich ist.
+- [x] Übersetzungen: `.pot` (249 Strings), vollständige deutsche `.po`/`.mo`,
+      `load_plugin_textdomain` auf `init`, `languages` im Build-ZIP, Suite
+      `tests/i18n.php` (Vollständigkeit, Platzhalter-Parität, Laufzeit de_DE).
+- [x] PHP 8.5: kompletter Suite-Lauf gegen PHP 8.5.12 grün; Matrix-Eintrag
+      `8.5/latest`.
+- [x] Multisite: `tests/multisite.php` auf echter Multisite (zweite Site,
+      Capabilities pro Site, isolierte Antworten, netzwerkweites Uninstall,
+      Opt-in-Inhaltslöschung) grün; CI-Job eingeplant.
+- [x] Echter SMTP-Versand: `tests/smtp-sink.py` + `tests/mail-smtp.php` +
+      `scripts/test-mail-smtp.sh`; Betreff, Routing, Reply-To, HTML-Body und
+      Summary-Tabelle kommen real über SMTP an.
+- [x] Barrierefreiheit: axe-core-Audit über acht Plugin-Screens; ein echter
+      Kontrastfehler (CodeMirror-Tagfarbe 4.08:1) behoben (5.95:1), danach keine
+      serious/critical-Befunde. Restliche Meldungen sind WP-Core-Adminbar.
+- [x] Lizenzierter Divi-Lauf: nicht beschaffbar; dafür manueller, secret-gated
+      Workflow `.github/workflows/divi-live.yml` (`ADF_DIVI_ZIP_BASE64`).
+      Weiterhin NICHT ausgeführt und nirgends als bestanden behauptet.
+- Offen bleibt bewusst: echter Provider-SMTP (TLS/Auth) und ein manueller
+  Tastatur-/Screenreader-Durchgang.
+
 ## Arbeitsweise je Iteration
 
 1. Relevante Skills laden; Istzustand und Datenfluss lesen, enge Reproduktion bzw.

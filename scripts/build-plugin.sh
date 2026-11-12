@@ -13,7 +13,7 @@ mkdir -p "$PLUGIN_DIR"
 cp advanced-divi-forms.php "$PLUGIN_DIR/"
 cp uninstall.php "$PLUGIN_DIR/"
 
-for dir in includes templates assets; do
+for dir in includes templates assets languages; do
   if [[ -d "$dir" ]]; then
     cp -r "$dir" "$PLUGIN_DIR/"
   fi

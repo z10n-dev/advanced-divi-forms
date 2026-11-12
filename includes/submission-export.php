@@ -172,7 +172,8 @@ function adf_create_submission_export( $form_id, array $ids = array(), array $fi
 	$headers = array_merge( array( __( 'Submission ID', 'advanced-divi-forms' ), __( 'Received', 'advanced-divi-forms' ), __( 'Status', 'advanced-divi-forms' ), __( 'Internal note', 'advanced-divi-forms' ) ), array_map( 'strval', array_keys( $keys ) ) );
 	if ( $has_labels ) {
 		foreach ( $keys as $key => $unused ) {
-			$headers[] = sprintf( __( 'Field label [%s]', 'advanced-divi-forms' ), $key ); // phpcs:ignore WordPress.WP.I18n.MissingTranslatorsComment -- Stable field ID, distinct even when human labels repeat.
+			/* translators: %s: stable field ID, which stays distinct even when labels repeat. */
+			$headers[] = sprintf( __( 'Field label [%s]', 'advanced-divi-forms' ), $key );
 		}
 	}
 	$xml    = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><sheetData>';

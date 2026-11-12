@@ -12,6 +12,9 @@
 .adf-template-preview #adf-preview-status { margin: 16px 0; }
 .adf-template-preview #adf-preview-diagnostics { color: #714b00; padding-left: 20px; list-style: disc; }
 .adf-template-preview .adf-preview-error { color: #b32d2e; font-weight: 600; }
+/* CodeMirror's default tag green misses WCAG AA on its matching-tag highlight
+   (#117700 on #efd6b3 is 4.08:1); this darker green reaches 5.95:1. */
+.post-type-adf_mail_template .CodeMirror .cm-tag { color: #0a5b00; }
 @media (max-width: 600px) {
     .adf-template-preview { padding: 12px; }
     .adf-template-preview #adf-insert-target { max-width: 100%; }
