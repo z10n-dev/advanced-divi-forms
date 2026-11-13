@@ -11,3 +11,7 @@
 .vscode/
 /dist/
 *.log
+
+# Python bytecode from local smoke checks
+__pycache__/
+*.pyc

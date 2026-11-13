@@ -1,0 +1,90 @@
+name: Divi live integration (manual)
+
+# The repository cannot ship or download Divi: it is a licensed product. The
+# vendor-free contract tests run in the main pipeline; this manual workflow runs
+# tests/divi-live.php against a real, licensed Divi theme supplied as a secret.
+#
+# Setup: add the repository secret ADF_DIVI_ZIP_BASE64 containing a base64 of the
+# licensed Divi theme ZIP (the archive whose extracted folder contains style.css).
+# It is never logged, committed or uploaded as an artifact.
+
+on:
+  workflow_dispatch:
+    inputs:
+      wordpress:
+        description: WordPress version to test against
+        required: false
+        default: latest
+      php:
+        description: PHP version to test against
+        required: false
+        default: '8.3'
+
+permissions:
+  contents: read
+
+jobs:
+  divi-live:
+    name: Licensed Divi live run
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: wordpress_test
+          MYSQL_USER: wordpress
+          MYSQL_PASSWORD: wordpress
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --host=127.0.0.1 --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ inputs.php }}
+          extensions: mysqli, zip
+          tools: wp-cli
+          coverage: none
+
+      - name: Extract the licensed Divi theme
+        env:
+          DIVI_ZIP_BASE64: ${{ secrets.ADF_DIVI_ZIP_BASE64 }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${DIVI_ZIP_BASE64}" ]]; then
+            echo "::error::Set the repository secret ADF_DIVI_ZIP_BASE64 to a licensed Divi theme ZIP."
+            exit 1
+          fi
+          mkdir -p "$RUNNER_TEMP/divi"
+          printf '%s' "$DIVI_ZIP_BASE64" | base64 -d > "$RUNNER_TEMP/divi.zip"
+          unzip -q "$RUNNER_TEMP/divi.zip" -d "$RUNNER_TEMP/divi"
+          THEME_DIR=$(dirname "$(find "$RUNNER_TEMP/divi" -maxdepth 2 -name style.css | head -1)")
+          if [[ -z "$THEME_DIR" || ! -f "$THEME_DIR/style.css" ]]; then
+            echo "::error::The archive does not contain a theme with style.css."
+            exit 1
+          fi
+          echo "ADF_DIVI_THEME_DIR=$THEME_DIR" >> "$GITHUB_ENV"
+          echo "Licensed theme detected: $(grep -m1 'Version:' "$THEME_DIR/style.css" || true)"
+
+      - name: Build the plugin ZIP
+        run: bash scripts/build-plugin.sh
+
+      - name: Run the live Divi suites
+        env:
+          WP_VERSION: ${{ inputs.wordpress }}
+          WP_DB_HOST: 127.0.0.1:3306
+          WP_DB_NAME: wordpress_test
+          WP_DB_USER: wordpress
+          WP_DB_PASSWORD: wordpress
+        run: bash scripts/test-wordpress-activation.sh dist/advanced-divi-forms.zip

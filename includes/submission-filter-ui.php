@@ -91,7 +91,13 @@ function adf_render_submission_views( $form_id, array $filters ) {
 				'adf_view' => $view,
 			)
 		);
-		$label = 'trash' === $view ? __( 'Trash (%d)', 'advanced-divi-forms' ) : __( 'Active (%d)', 'advanced-divi-forms' ); // phpcs:ignore WordPress.WP.I18n.MissingTranslatorsComment -- Total submissions in this form view.
+		if ( 'trash' === $view ) {
+			/* translators: %d: number of trashed submissions for this form. */
+			$label = __( 'Trash (%d)', 'advanced-divi-forms' );
+		} else {
+			/* translators: %d: number of active submissions for this form. */
+			$label = __( 'Active (%d)', 'advanced-divi-forms' );
+		}
 		echo '<a href="' . esc_url( adf_forms_url( $args ) ) . '"' . ( $view === $filters['adf_view'] ? ' aria-current="page"' : '' ) . '>' . esc_html( sprintf( $label, $count ) ) . '</a> ';
 	}
 	echo '</nav>';

@@ -77,6 +77,7 @@ wp_test eval-file "$(dirname "$(realpath "$0")")/../tests/divi-support.php"
 wp_test eval-file "$(dirname "$(realpath "$0")")/../tests/submission-volume.php"
 wp_test eval-file "$(dirname "$(realpath "$0")")/../tests/divi-integration.php"
 wp_test eval-file "$(dirname "$(realpath "$0")")/../tests/divi-discovery.php"
+wp_test eval-file "$(dirname "$(realpath "$0")")/../tests/i18n.php"
 
 # Last: removal is destructive for plugin state, so it must not affect other suites.
 wp_test eval-file "$(dirname "$(realpath "$0")")/../tests/uninstall.php"

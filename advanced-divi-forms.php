@@ -3,7 +3,7 @@
  * Plugin Name: Advanced Divi Forms
  * Plugin URI: https://github.com/z10n-dev/advanced-divi-forms
  * Description: Custom enhancements for Divi contact forms.
- * Version: 0.12.0
+ * Version: 0.13.0
  * Requires at least: 6.2
  * Requires PHP: 8.2
  * Author: z10n-dev
@@ -19,7 +19,26 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 define( 'ADF_PLUGIN_FILE', __FILE__ );
-define( 'ADF_PLUGIN_VERSION', '0.12.0' );
+define( 'ADF_PLUGIN_VERSION', '0.13.0' );
+
+/**
+ * Load the bundled translations.
+ *
+ * Language packs installed in `WP_LANG_DIR/plugins` are loaded by WordPress on
+ * its own; this call adds the `.mo` files shipped in the plugin's `languages`
+ * directory. Hooked to `init` because WordPress 6.7+ warns about translation
+ * loading that happens too early.
+ *
+ * @return void
+ */
+function adf_load_textdomain() {
+	load_plugin_textdomain(
+		'advanced-divi-forms',
+		false,
+		dirname( plugin_basename( ADF_PLUGIN_FILE ) ) . '/languages'
+	);
+}
+add_action( 'init', 'adf_load_textdomain' );
 
 require_once __DIR__ . '/includes/github-updater.php';
 require_once __DIR__ . '/includes/form-data.php';

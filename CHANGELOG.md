@@ -7,6 +7,54 @@ All notable changes to Advanced Divi Forms. The format follows
 
 ## [Unreleased]
 
+## [0.13.0]
+
+### Added
+
+- Bundled translations: `languages/advanced-divi-forms.pot`, a complete German
+  catalogue (`-de_DE.po` plus the compiled `.mo`) and a `load_plugin_textdomain`
+  call on `init`. The build ZIP now ships the `languages` directory, so the admin
+  interface is available in German as well as English.
+- `tests/i18n.php` fails when a template string has no German translation, when
+  the catalogues disagree on the number of entries, or when a placeholder set
+  changes during translation; it also loads the textdomain at runtime in de_DE.
+- Multisite coverage: `tests/multisite.php`, `scripts/test-wordpress-multisite.sh`
+  and a CI job prove per-site capabilities, per-site settings and caches, isolated
+  answers, a network-wide uninstall pass and the opt-in content removal.
+- Real SMTP delivery: `tests/smtp-sink.py` implements a local sink,
+  `tests/mail-smtp.php` renders the Divi notification through WordPress's actual
+  PHPMailer transport, and `scripts/test-mail-smtp.sh` runs both. The suite
+  asserts subject, routing, Reply-To, the HTML body and the summary table on the
+  wire.
+- Accessibility audit: `tests/admin-accessibility.js` and
+  `scripts/test-admin-accessibility.sh` run axe-core (WCAG A/AA plus best
+  practice) against the Forms overview, answer list, Trash view, answer detail,
+  Mail Templates, template editor, Privacy & Retention and Updates screens.
+- CI jobs `multisite`, `mail-delivery` and `accessibility`; a release is published
+  only after these and the compatibility matrix pass.
+- `.github/workflows/divi-live.yml`, a manual, secret-gated run of
+  `tests/divi-live.php` against a licensed Divi theme supplied as
+  `ADF_DIVI_ZIP_BASE64`. It stays outside the release pipeline because the
+  repository cannot ship or download Divi.
+
+### Changed
+
+- Compatibility matrix includes PHP 8.5 on the latest WordPress; the plugin is
+  documented and tested for PHP 8.2–8.5.
+- Extracted the selection counter, the per-row checkbox label and the view totals
+  into variables so their strings carry real `translators:` comments instead of a
+  PHPCS suppression. Rendered markup is unchanged.
+- The template editor's CodeMirror tag colour is darkened (5.95:1 instead of
+  4.08:1) so the syntax highlighting meets WCAG AA on its matching-tag
+  background.
+
+### Not verified
+
+- A licensed Divi editing session still needs the gated workflow or a staging
+  site; the vendor-free contract tests remain the only automated Divi evidence.
+- The SMTP suite uses a local sink. A provider with TLS and authentication must
+  still be tested once on staging.
+
 ## [0.12.0]
 
 ### Added
